@@ -1,0 +1,21 @@
+package com.sophony.flow.worker.base;
+
+import com.sophony.flow.worker.modle.TaskNode;
+import com.sophony.flow.worker.modle.TaskPermission;
+
+import java.util.List;
+
+/**
+ * FlowValidService
+ *
+ * @author yzm
+ * @version 1.0
+ * @description
+ * @date 2023/3/10 16:52
+ */
+public interface FlowValidService {
+
+    TaskPermission valid(List<TaskNode> taskNodeList);
+
+
+}
