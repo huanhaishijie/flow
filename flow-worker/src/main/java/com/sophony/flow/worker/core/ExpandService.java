@@ -46,11 +46,12 @@ public class ExpandService implements DataService {
     public String insert(BaseMappingEO eo) {
         User currentUser = flowUserInfo.getCurrentUser();
 
+        Date date = new Date();
+        eo.setUpdateTime(date);
+        eo.setCreateTime(date);
         if(Objects.nonNull(currentUser)){
             eo.setCreateUser(currentUser.getUserName());
             eo.setUpdateUser(currentUser.getUserName());
-            eo.setCreateTime(new Date());
-            eo.setUpdateTime(new Date());
         }
 
 

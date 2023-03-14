@@ -95,9 +95,19 @@ public class ActProcessTask extends BaseMappingEO {
 
 
     /**
-     * 当前任务的凭证
+     * 凭证 true 和false， 子节点有多少个就能消费多少次
      */
     private String voucher;
+
+    /**
+     * 凭证消费次数， 归零voucher将作废
+     */
+    private Integer voucherCount;
+
+    /**
+     * 节点本身的历史
+     */
+    private String selfHistory;
 
 
 
@@ -227,5 +237,21 @@ public class ActProcessTask extends BaseMappingEO {
 
     public void setVoucher(String voucher) {
         this.voucher = voucher;
+    }
+
+    public Integer getVoucherCount() {
+        return voucherCount;
+    }
+
+    public void setVoucherCount(Integer voucherCount) {
+        this.voucherCount = voucherCount;
+    }
+
+    public String getSelfHistory() {
+        return selfHistory;
+    }
+
+    public void setSelfHistory(String selfHistory) {
+        this.selfHistory = selfHistory;
     }
 }

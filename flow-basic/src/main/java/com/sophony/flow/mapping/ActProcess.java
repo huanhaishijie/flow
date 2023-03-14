@@ -49,6 +49,11 @@ public class ActProcess extends BaseMappingEO {
      */
     private String className;
 
+    /**
+     * 任务流程历史记录
+     */
+    private String taskHistory;
+
 
     public String getActId() {
         return actId;
@@ -101,5 +106,13 @@ public class ActProcess extends BaseMappingEO {
     @Override
     public String getTableName() {
         return "act_process";
+    }
+
+    public String getTaskHistory() {
+        return taskHistory;
+    }
+
+    public void setTaskHistory(String taskHistory) {
+        this.taskHistory = taskHistory;
     }
 }

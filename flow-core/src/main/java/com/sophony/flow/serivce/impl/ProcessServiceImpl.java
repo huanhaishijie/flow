@@ -107,7 +107,11 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         processTask.setTagIds(actTaskProcdef.getTagIds());
         processTask.setTaskNo(actTaskProcdef.getTaskNo());
         processTask.setTaskName(actTaskProcdef.getTaskName());
-        super.insert(processTask);
+        processTask.setVoucher("true");
+        processTask.setVoucherCount(actTaskProcdef.getNextTaskIds().split(",").length);
+        String taskId = super.insert(processTask);
+        taskRecord(taskId, actTaskProcdef.getId(), "");
+        processTaskRecord(taskId, processId);
         FlowNotify flowNotify = new FlowNotify();
         flowNotify.setNotifyEnum(NotifyEnum.START);
         flowNotify.setHook(process);
@@ -169,15 +173,12 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             return ResultDTO.failed(processId+": 没有完整流程，当前流程不可继续");
         }
 
-        String voucher;
         if(actTaskProcdefs.size() > 1){
             Set<String> collect = actTaskProcdefs.stream().map(it -> it.getTaskNo()).collect(Collectors.toSet());
             if(collect.contains("end")){
                 return ResultDTO.failed(processId+": "+ actTaskProcdef.getTaskNo() +":拥有多个子节点任务节点不能直接关联结束节点");
             }
-            voucher = MD5SingUtil.MD5(task);
-        } else {
-            voucher = super.getById(taskNode.getId(), ActProcessTask.class).getVoucher();
+
         }
         actTaskProcdefs = actTaskProcdefs.stream().filter(it -> {
             boolean f = false;
@@ -189,7 +190,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 return true;
             }
             String voucherTemp = super.getById(taskNode.getId(), ActProcessTask.class).getVoucher();
-            String preTaskSql = task.getQuerySql() + " where is_deleted = 0 and state = 'FINISH' and voucher = '"+voucherTemp+"' and  taskf_id in " + super.conditionByIn(preTaskIds, String.class) + " order by id ";
+            String preTaskSql = task.getQuerySql() + " where is_deleted = 0 and state = 'FINISH' and voucher = 'true' and  taskf_id in " + super.conditionByIn(preTaskIds, String.class) + " order by id ";
             List<ActProcessTask> list = super.list(preTaskSql, ActProcessTask.class);
             Set<String> fids = list.stream().map(item -> item.getTaskfId()).collect(Collectors.toSet());
             Map<String, Boolean> res = new LinkedHashMap<>();
@@ -206,7 +207,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
             return ResultDTO.success("成功");
         }
-
+        String parentHistory = super.getById(task.getId(), ActProcessTask.class).getSelfHistory();
         if(StringUtils.equals(actTaskProcdefs.get(0).getTaskNo(), "end")){
             ActTaskProcdef end = actTaskProcdefs.get(0);
             ActProcessTask actProcessTask = new ActProcessTask();
@@ -223,7 +224,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             actProcessTask.setTaskfId(end.getId());
             actProcessTask.setPreTaskId(task.getId());
             actProcessTask.setProcessfId(actProcdef.getId());
-            super.insert(actProcessTask);
+            String taskId = super.insert(actProcessTask);
             //审核后回调
             afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
             ActProcess endProcess = new ActProcess();
@@ -231,6 +232,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             endProcess.setState(ProcessStateEnum.END.getName());
             endProcess.setEndTime(LocalDateTime.now());
             super.updateById(endProcess);
+            taskRecord(taskId, end.getId(), parentHistory);
+            processTaskRecord(taskId, processId);
             //流程结束回调
             endNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
             return ResultDTO.success("成功");
@@ -247,23 +250,60 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             actProcessTask.setStartTime(LocalDateTime.now());
             actProcessTask.setTaskfId(it.getId());
             actProcessTask.setTagIds(it.getTagIds());
-
             actProcessTask.setPreTaskId(task.getId());
             String preTaskIds = it.getPreTaskIds();
+            StringBuilder pStr = new StringBuilder();
             if(preTaskIds.contains(",") && !StringUtils.equals(it.getCond(), "or")){
-                String sql = actProcessTask.getQuerySql() + " where is_deleted = 0 and voucher = '"+voucher+"' and taskf_id in " + super.conditionByIn(preTaskIds, String.class);
+                String sql = actProcessTask.getQuerySql() + " where is_deleted = 0 and voucher = 'true' and taskf_id in " + super.conditionByIn(preTaskIds, String.class);
                 List<ActProcessTask> list = super.list(sql, ActProcessTask.class);
-                String ids = list.stream().map(i -> i.getId()).collect(Collectors.joining(","));
+                String ids = list.stream().map(i -> {
+                    pStr.append(i.getSelfHistory().substring(i.getSelfHistory().lastIndexOf(",")+1)+"|");
+                    return i.getId();
+                }).collect(Collectors.joining(","));
                 actProcessTask.setPreTaskId(ids);
             }
 
+            String pStrRes = pStr.toString();
+            if(StringUtils.isNotEmpty(pStrRes)){
+                pStrRes = ","+pStrRes.toString().substring(0, pStr.length() - 1);
+            }
+
             actProcessTask.setProcessfId(actProcdef.getId());
-            actProcessTask.setVoucher(voucher);
-            super.insert(actProcessTask);
+            actProcessTask.setVoucher("true");
+            actProcessTask.setVoucherCount(it.getNextTaskIds().split(",").length);
+            String taskId = super.insert(actProcessTask);
+            taskRecord(taskId, it.getId(), parentHistory + pStrRes);
+            processTaskRecord(taskId, processId);
+            //扣减凭证次数
+            for(String id :actProcessTask.getPreTaskId().split(",")){
+                deductionVoucher(id);
+            }
         });
         //审核后回调
         afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
         return ResultDTO.success("成功");
+    }
+
+    /**
+     * 扣减凭证次数
+     * @param id
+     */
+    private void deductionVoucher(String id) {
+        ActProcessTask actProcessTask = super.getById(id, ActProcessTask.class);
+        Integer voucherCount = actProcessTask.getVoucherCount();
+        String voucher = actProcessTask.getVoucher();
+        if(StringUtils.equals("false", voucher)){
+            throw new RuntimeException("审批流程有误，本次审核失败");
+        }
+        voucherCount --;
+        if(voucherCount < 1){
+            voucher = "false";
+        }
+        actProcessTask = new ActProcessTask();
+        actProcessTask.setVoucher(voucher);
+        actProcessTask.setVoucherCount(voucherCount);
+        actProcessTask.setId(id);
+        super.updateById(actProcessTask);
     }
 
     /**
@@ -295,11 +335,15 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             return ResultDTO.failed("业务条件校验不通过，审核终止");
         }
         TaskNode taskNode = processCommonModel.getTaskNode();
+        if(StringUtils.equals(taskNode.getTaskNo(), "start")){
+            return ResultDTO.failed("start节点不能回退");
+        }
         ActProcessTask task = new ActProcessTask();
         task.setId(taskNode.getId());
         task.setContent(reqDto.getContent());
         task.setEndTime(LocalDateTime.now());
         task.setState(ProcessTaskStateEnum.BACK.getName());
+        task.setVoucher("false");
         User currentUser = getCurrentUser();
         if(Objects.nonNull(currentUser)){
             task.setAuditUser(currentUser.getUserName());
@@ -315,23 +359,33 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.equals(backNode.getTaskNo(), "start")){
             return ResultDTO.failed("流程开始节点不允许回退");
         }
-        //校验当前节点
-        String tagIds = actTaskProcdef.getTagIds();
-        if(StringUtils.isNotEmpty(tagIds)){
-            List<String> ids = Arrays.asList(tagIds.split(","));
-            String message = "task:"+task+" 任务审核拒绝, 执行中断操作";
-            interrupted(ids, message, backNode.getVoucher());
-        }
         //校验下一层节点
         String backFTasks = actTaskProcdef.getBackTasks();
-
         //审核回退节点
+        ActProcessTask currentNode = super.getById(task.getId(), ActProcessTask.class);
+        String selfHistory = currentNode.getSelfHistory();
         if(StringUtils.isNotEmpty(backFTasks)){
             List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(backFTasks, ActTaskProcdef.class);
             if(CollectionUtils.isEmpty(actTaskProcdefs)){
                 return ResultDTO.failed("节点模板："+actTaskProcdef.getId()+" 未知退回节点");
             }
-            String voucher = MD5SingUtil.MD5(backNode);
+
+            //获取最近的back任务
+            List<String> taskIds = Arrays.asList((actTaskProcdef.getPreTaskIds()+"," +backFTasks).split(",")).stream().map(it -> {
+                if(selfHistory.lastIndexOf(it) == -1){
+                    return null;
+                }
+                try {
+                    String t = selfHistory.substring(0, selfHistory.lastIndexOf(it) - 1);
+                    String taskId = t.substring(t.length() - 19);
+                    return taskId;
+                }catch (Exception e){
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            interrupted(taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
+
             actTaskProcdefs.forEach(it -> {
                 ActProcessTask actProcessTask = new ActProcessTask();
                 actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
@@ -345,11 +399,15 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 actProcessTask.setTagIds(it.getTagIds());
                 actProcessTask.setPreTaskId(task.getId());
                 actProcessTask.setProcessfId(actProcdef.getId());
-                actProcessTask.setVoucher(voucher);
+                actProcessTask.setVoucher("true");
+                actProcessTask.setVoucherCount(it.getNextTaskIds().split(",").length);
                 actProcessTask.setExpansionData(new HashMap<String, Object>(){{
                     put("message", "任务实例："+task.getId() +" 审核拒绝");
                 }});
-                super.insert(actProcessTask);
+                String taskId = super.insert(actProcessTask);
+
+                taskRecord(taskId, it.getId(),  task.getSelfHistory());
+                processTaskRecord(taskId, processId);
             });
             //审核后回调
             afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
@@ -359,7 +417,25 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(actTaskProcdef.getPreTaskIds())){
             return ResultDTO.failed("节点模板："+actTaskProcdef.getId()+" 没有上一级节点");
         }
+
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(actTaskProcdef.getPreTaskIds(), ActTaskProcdef.class);
+
+        List<String> taskIds = Arrays.asList(actTaskProcdef.getPreTaskIds().split(",")).stream().map(it -> {
+            if(selfHistory.lastIndexOf(it) == -1){
+                return null;
+            }
+            try {
+                String t = selfHistory.substring(0, selfHistory.lastIndexOf(it) - 1);
+                String taskId = t.substring(t.length() - 19);
+                return taskId;
+            }catch (Exception e){
+                return null;
+            }
+
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        interrupted(taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
+
         actTaskProcdefs.forEach(it -> {
             ActProcessTask actProcessTask = new ActProcessTask();
             actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
@@ -373,11 +449,14 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             actProcessTask.setTagIds(it.getTagIds());
             actProcessTask.setPreTaskId(task.getId());
             actProcessTask.setProcessfId(actProcdef.getId());
-            actProcessTask.setVoucher(backNode.getVoucher());
+            actProcessTask.setVoucher("true");
+            actProcessTask.setVoucherCount(it.getNextTaskIds().split(",").length);
             actProcessTask.setExpansionData(new HashMap<String, Object>(){{
                 put("message", "任务实例："+task.getId() +" 审核拒绝");
             }});
-            super.insert(actProcessTask);
+            String taskId = super.insert(actProcessTask);
+            taskRecord(taskId, it.getId(),  backNode.getSelfHistory());
+            processTaskRecord(taskId, processId);
         });
         afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
         return ResultDTO.success("成功");
@@ -434,16 +513,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(preTaskId)){
             return ResultDTO.failed("当前任务没有前一个任务节点, 操作失败");
         }
+        interrupted(Arrays.asList(preTaskId), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
         processTask = super.getById(preTaskId, ActProcessTask.class);
-
-        String tagIds = processTask.getTagIds();
-        //执行中断操作
-        if(StringUtils.isNotEmpty(tagIds)){
-            List<String> list = Arrays.asList(tagIds.split(","));
-            String message = "task:"+task.getId() +" 执行撤回操作, 中断同标签任务";
-            interrupted(list, message, processTask.getVoucher());
-        }
-
         ActProcessTask actProcessTask = new ActProcessTask();
         actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
         actProcessTask.setTaskName(processTask.getTaskName());
@@ -456,7 +527,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         actProcessTask.setTagIds(processTask.getTagIds());
         actProcessTask.setPreTaskId(task.getId());
         actProcessTask.setProcessfId(actProcessTask.getProcessfId());
-        actProcessTask.setVoucher(processTask.getVoucher());
+        actProcessTask.setVoucher("true");
+        actProcessTask.setVoucherCount(1);
         super.insert(actProcessTask);
         afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
         return ResultDTO.success("成功");
@@ -565,32 +637,68 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(idsStr, ActTaskProcdef.class);
 
-        String sql1 = "update " + new ActProcessTask().getTableName() + " set content = ? , state = ?  where is_deleted = 0 " +
-                " and state = '"+ProcessTaskStateEnum.RUN.getName()+"' and voucher = '"+voucher+"'" +
+        String sql1 = "update " + new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'   where is_deleted = 0 " +
+                " and state = '"+ProcessTaskStateEnum.RUN.getName()+"' and voucher = 'true'" +
                 " and taskf_id in " + super.conditionByIn(idsStr, String.class);
         jdbcTemplate.update(sql1, message, ProcessTaskStateEnum.INTERRUPTED.getName());
 
-        Set<String> collect = actTaskProcdefs.stream().filter(it -> !StringUtils.isEmpty(it.getTagIds())).map(it -> it.getTagIds()).collect(Collectors.toSet());
-        if(CollectionUtils.isEmpty(collect)){
-            return true;
-        }
-        Set<String> ids2 = new HashSet<>();
-        collect.forEach(it -> Arrays.asList(it.split(",")).forEach(ids2::add) );
-        interrupted(ids2, message, voucher);
+//        Set<String> collect = actTaskProcdefs.stream().filter(it -> !StringUtils.isEmpty(it.getTagIds())).map(it -> it.getTagIds()).collect(Collectors.toSet());
+//        if(CollectionUtils.isEmpty(collect)){
+//            return true;
+//        }
+//        Set<String> ids2 = new HashSet<>();
+//        collect.forEach(it -> Arrays.asList(it.split(",")).forEach(ids2::add) );
+//        interrupted(ids2, message, voucher);
         return true;
     }
 
     /**
      * 中断标签运行中的任务
-     * @param tagIds
+     * @param ids
      * @param message
      * @param voucher
      */
-    private void interrupted(Collection<String> tagIds, String message, String voucher){
-        tagIds.forEach(it -> {
-            String sql = "update " +new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?  where is_deleted = 0 " +
-                    " and voucher = '"+voucher+"' and  state = '"+ProcessTaskStateEnum.RUN.getName()+"' and tag_ids like '%"+it+"%' ";
+    private void interrupted(Collection<String> ids, String message, String voucher){
+        ids.forEach(it -> {
+            String sql = "update " +new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'  where is_deleted = 0 " +
+                    " and voucher = 'true' and  state = '"+ProcessTaskStateEnum.RUN.getName()+"' and self_history like '%"+it+"%' ";
             jdbcTemplate.update(sql, message, ProcessTaskStateEnum.INTERRUPTED.getName());
         });
+    }
+
+
+    //taskNode 节点记录
+    private void taskRecord(String taskId, String taskfId, String parentHistory){
+        ActProcessTask actProcessTask = super.getById(taskId, ActProcessTask.class);
+        String res = "";
+        if(StringUtils.isEmpty(parentHistory)){
+            res = actProcessTask.getId() + "-" + taskfId;
+        }else {
+            res = parentHistory + ","+ actProcessTask.getId() + "-" + taskfId;
+        }
+        actProcessTask = new ActProcessTask();
+        actProcessTask.setId(taskId);
+        actProcessTask.setSelfHistory(res);
+        super.updateById(actProcessTask);
+    }
+
+
+    /**
+     * 流程任务流程记录
+     * @param taskId
+     * @param processId
+     */
+    private void processTaskRecord(String taskId, String processId){
+        ActProcess process = super.getById(processId, ActProcess.class);
+        String res = "";
+        if(StringUtils.isEmpty(process.getTaskHistory())){
+            res =  taskId;
+        }else {
+            res = ","+ taskId;
+        }
+        process = new ActProcess();
+        process.setId(processId);
+        process.setTaskHistory(res);
+        super.updateById(process);
     }
 }

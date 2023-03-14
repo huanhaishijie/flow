@@ -32,7 +32,7 @@ public class ActProcessLockServiceImpl extends BaseService implements IActProces
      * @param second
      */
     @Override
-    public ActProcessLock getLock(String processId, Long second) {
+    public synchronized ActProcessLock getLock(String processId, Long second) {
         ActProcessLock actProcessLock = new ActProcessLock();
         LocalDateTime validTime = LocalDateTime.now().plusSeconds(second);
         String sql = actProcessLock.getQuerySql() + " where is_deleted = 0 and valid_time > now() and status = 'lock' and process_id = ? order by create_time desc limit 1 ";

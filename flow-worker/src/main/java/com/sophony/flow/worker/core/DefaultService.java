@@ -35,8 +35,9 @@ public class DefaultService implements DataService {
     @SneakyThrows
     @Override
     public String insert(BaseMappingEO eo) {
-        eo.setUpdateTime(new Date());
-        eo.setUpdateTime(new Date());
+        Date date = new Date();
+        eo.setUpdateTime(date);
+        eo.setCreateTime(date);
         jdbcTemplate.update(eo.getInsertSql(), new ArgumentPreparedStatementSetter(eo.getArgs()));
         return eo.getId();
     }
