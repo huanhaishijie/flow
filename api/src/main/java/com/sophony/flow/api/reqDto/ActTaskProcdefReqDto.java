@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +43,7 @@ public class ActTaskProcdefReqDto {
      * 任务编号
      */
     @ApiModelProperty(name = "taskNo", value = "任务编号")
+    @NotBlank(message = "任务编号不能为空")
     private String taskNo;
 
     /**
@@ -78,74 +80,33 @@ public class ActTaskProcdefReqDto {
     private List<String> preTaskIds;
 
 
-    /**
-     * 下一级任务节点
-     */
-    @ApiModelProperty(name = "nextTaskIds", value = "下一级任务节点")
-    private List<String> nextTaskIds;
+//    /**
+//     * 下一级任务节点
+//     */
+//    @ApiModelProperty(name = "nextTaskIds", value = "下一级任务节点")
+//    private List<String> nextTaskIds;
 
-    /**
-     * 关联标签ids
-     * tag_ids
-     * @return
-     */
-    @ApiModelProperty(name = "tagIds", value = "关联标签ids")
-    private List<String> tagIds;
-
-    /**
-     *执行中断tag
-     */
-
-    @ApiModelProperty(name = "interruptTag", value = "执行中断tag")
-    private List<String> interruptTag;
 
 
     @ApiModelProperty(name = "cond", value = "条件")
     private String cond;
 
 
-    public List<String> getTagIds() {
-        if(CollectionUtils.isEmpty(tagIds)){
-            return tagIds;
-        }
-        tagIds.sort(Comparator.reverseOrder());
-        LinkedList<String> objects = new LinkedList<>();
-        objects.addAll(tagIds);
-        return objects;
-    }
 
-    public void setTagIds(List<String> tagIds) {
-        this.tagIds = tagIds;
-    }
-
-    public List<String> getInterruptTag() {
-        if(CollectionUtils.isEmpty(interruptTag)){
-            return interruptTag;
-        }
-        interruptTag.sort(Comparator.reverseOrder());
-        LinkedList<String> objects = new LinkedList<>();
-        objects.addAll(interruptTag);
-        return objects;
-    }
-
-    public void setInterruptTag(List<String> interruptTag) {
-        this.interruptTag = interruptTag;
-    }
-
-
-    public List<String> getNextTaskIds() {
-        if(CollectionUtils.isEmpty(nextTaskIds)){
-            return nextTaskIds;
-        }
-        nextTaskIds.sort(Comparator.reverseOrder());
-        LinkedList<String> objects = new LinkedList<>();
-        objects.addAll(nextTaskIds);
-        return objects;
-    }
-
-    public void setNextTaskIds(List<String> nextTaskIds) {
-        this.nextTaskIds = nextTaskIds;
-    }
+//
+//    public List<String> getNextTaskIds() {
+//        if(CollectionUtils.isEmpty(nextTaskIds)){
+//            return nextTaskIds;
+//        }
+//        nextTaskIds.sort(Comparator.reverseOrder());
+//        LinkedList<String> objects = new LinkedList<>();
+//        objects.addAll(nextTaskIds);
+//        return objects;
+//    }
+//
+//    public void setNextTaskIds(List<String> nextTaskIds) {
+//        this.nextTaskIds = nextTaskIds;
+//    }
 
     public List<String> getPreTaskIds() {
         if(CollectionUtils.isEmpty(preTaskIds)){

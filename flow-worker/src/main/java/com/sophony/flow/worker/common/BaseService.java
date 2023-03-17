@@ -71,8 +71,8 @@ public abstract class BaseService{
 
     }
 
-    protected <T extends BaseMappingEO> List<T> selectByIds(String nextTaskIds, Class<T> tClass) {
-        return  flowBeanFactory.getDataService().selectByIds(nextTaskIds, tClass);
+    protected <T extends BaseMappingEO> List<T> selectByIds(String ids, Class<T> tClass) {
+        return  flowBeanFactory.getDataService().selectByIds(ids, tClass);
     }
 
     public <T extends BaseMappingEO> T selectOne(String sql, Class<T> tClass, Object[] args){

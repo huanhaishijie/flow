@@ -29,38 +29,73 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
     public ResultDTO save(ActTaskProcdefReqDto reqDto) {
         ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
         actTaskProcdef.copyProperties(reqDto);
-        if(!CollectionUtils.isEmpty(reqDto.getNextTaskIds())){
-            String ids = reqDto.getNextTaskIds().stream().collect(Collectors.joining(","));
-            actTaskProcdef.setNextTaskIds(ids);
-        }
+
         if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds())){
             String ids = reqDto.getPreTaskIds().stream().collect(Collectors.joining(","));
             actTaskProcdef.setPreTaskIds(ids);
         }
-
         if(!StringUtils.isNotBlank(reqDto.getProcessFid())){
-            throw new RuntimeException("没有审批流程模板id");
+            return ResultDTO.failed("没有审批流程模板id");
+        }
+        actTaskProcdef.getQuerySql();
+        ActTaskProcdef temp = super.selectOne(actTaskProcdef.getQuerySql() + " where is_deleted = 0 and task_no = ? ", ActTaskProcdef.class, new Object[]{reqDto.getTaskNo()});
+        if(Objects.nonNull(temp)){
+           return  ResultDTO.failed("当前节点编号已经存在，请重新命名编号");
         }
 
-        if(!CollectionUtils.isEmpty(reqDto.getNextTaskIds()) && !CollectionUtils.isEmpty(reqDto.getPreTaskIds())){
-            boolean b = reqDto.getNextTaskIds().retainAll(reqDto.getPreTaskIds());
-            if(!b){
-                throw new RuntimeException("当前节点上一级节点和下一级节点有重复");
-            }
-        }
-        if(!CollectionUtils.isEmpty(reqDto.getTagIds())){
-            String ids = reqDto.getTagIds().stream().collect(Collectors.joining(","));
-            actTaskProcdef.setTagIds(ids);
-        }
-        if(!CollectionUtils.isEmpty(reqDto.getInterruptTag())){
-            String ids = reqDto.getInterruptTag().stream().collect(Collectors.joining(","));
-            actTaskProcdef.setInterruptTag(ids);
-        }
         if(StringUtils.isNotBlank(actTaskProcdef.getId())){
+            ActTaskProcdef taskProcdef = super.getById(reqDto.getId(), ActTaskProcdef.class);
+            if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && StringUtils.isNotBlank(taskProcdef.getNextTaskIds())){
+                List<String> nextIds = Arrays.asList(taskProcdef.getNextTaskIds().split(","));
+                boolean b = nextIds.retainAll(reqDto.getPreTaskIds());
+                if(!b){
+                    return ResultDTO.failed("下一级节点和上一级节点冲突");
+                }
+            }
+            if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && reqDto.getPreTaskIds().contains(reqDto.getId())){
+                    return ResultDTO.failed("所选上一级节点不能包含自己");
+            }
+
+            if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds())){
+                String ids = reqDto.getPreTaskIds().stream().collect(Collectors.joining(","));
+                List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(ids, ActTaskProcdef.class);
+                actTaskProcdefs.forEach(it -> {
+                    ActTaskProcdef actf = new ActTaskProcdef();
+                    if(StringUtils.isNotBlank(it.getNextTaskIds())){
+                        List<String> list = Arrays.asList(it.getNextTaskIds().split(","));
+                        list.add(reqDto.getId());
+                        list.sort(Comparator.reverseOrder());
+                        actf.setNextTaskIds(list.stream().collect(Collectors.joining(",")));
+                    }else {
+                        actf.setNextTaskIds(reqDto.getId());
+                    }
+                    actf.setId(it.getId());
+                    super.updateById(actf);
+                });
+            }
+
+
             super.updateById(actTaskProcdef);
             return ResultDTO.success("成功");
         }
-        super.insert(actTaskProcdef);
+        String id = super.insert(actTaskProcdef);
+        if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds())){
+            String ids = reqDto.getPreTaskIds().stream().collect(Collectors.joining(","));
+            List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(ids, ActTaskProcdef.class);
+            actTaskProcdefs.forEach(it -> {
+                ActTaskProcdef actf = new ActTaskProcdef();
+                if(StringUtils.isNotBlank(it.getNextTaskIds())){
+                    List<String> list = Arrays.asList(it.getNextTaskIds().split(","));
+                    list.add(id);
+                    list.sort(Comparator.reverseOrder());
+                    actf.setNextTaskIds(list.stream().collect(Collectors.joining(",")));
+                }else {
+                    actf.setNextTaskIds(id);
+                }
+                actf.setId(it.getId());
+                super.updateById(actf);
+            });
+        }
         return ResultDTO.success("成功");
     }
 
