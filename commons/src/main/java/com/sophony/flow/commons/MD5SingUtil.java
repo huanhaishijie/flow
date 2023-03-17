@@ -4,7 +4,7 @@ package com.sophony.flow.commons;
  * MD5SingUtil
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description
  * @date 2023/3/12 11:09
  */

@@ -8,7 +8,7 @@ import com.sophony.flow.commons.model.IProcess;
  * FlowNotify
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description
  * @date 2023/3/10 12:32
  */

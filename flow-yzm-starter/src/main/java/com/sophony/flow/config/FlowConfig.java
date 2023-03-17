@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * FlowConfig
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description 启动配置
  * @date 2023/3/8 21:44
  */

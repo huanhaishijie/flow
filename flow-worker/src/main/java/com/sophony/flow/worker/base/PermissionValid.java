@@ -9,7 +9,7 @@ import java.util.List;
  * PermissionValid
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description 权限校验
  * @date 2023/3/9 10:15
  */

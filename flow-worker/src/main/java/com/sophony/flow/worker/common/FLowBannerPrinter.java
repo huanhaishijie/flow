@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
  * FLowBannerPrinter
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description Banner
  * @date 2023/3/8 23:29
  */

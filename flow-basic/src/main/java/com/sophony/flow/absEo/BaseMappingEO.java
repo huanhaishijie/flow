@@ -15,7 +15,7 @@ import java.util.*;
  * BaseMappingEO
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description
  * @date 2023/3/7 13:39
  */

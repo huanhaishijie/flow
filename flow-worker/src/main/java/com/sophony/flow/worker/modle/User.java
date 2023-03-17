@@ -4,7 +4,7 @@ package com.sophony.flow.worker.modle;
  * User
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description 用户
  * @date 2023/3/9 10:06
  */

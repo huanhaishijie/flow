@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
  * ProcessModel
  *
  * @author yzm
- * @version 1.0.0
+ * @version 1.5.0
  * @description 流程抽象核心Model
  * @date 2023/3/10 0:14
  */

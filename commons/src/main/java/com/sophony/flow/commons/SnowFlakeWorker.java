@@ -6,7 +6,7 @@ import java.util.Random;
  * SnowFlakeWorker
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description id生成器
  * @date 2023/3/7 11:40
  */

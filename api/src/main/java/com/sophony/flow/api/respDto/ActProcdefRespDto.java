@@ -9,7 +9,7 @@ import lombok.Data;
  * @Description TODO
  * @Author yzm
  * @Date 2022/11/9 15:33
- * @Version 1.0
+ * @version 1.5.0
  */
 
 @ApiModel(value = "ActProcdefRespDto", description = "流程定义响应DTO")

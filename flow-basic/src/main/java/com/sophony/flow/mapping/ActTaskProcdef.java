@@ -6,7 +6,7 @@ import com.sophony.flow.absEo.BaseMappingEO;
  * ActTaskProcdef
  *
  * @author yzm
- * @version 1.0
+ * @version 1.5.0
  * @description 流程任务节点模板
  * @date 2023/3/8 14:38
  */
