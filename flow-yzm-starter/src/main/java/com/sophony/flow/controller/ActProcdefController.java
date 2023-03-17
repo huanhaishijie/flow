@@ -40,8 +40,15 @@ public class ActProcdefController {
 
     @GetMapping("delete")
     @ApiOperation(value = "删除流程定义", notes = "删除流程定义")
-    public ResultDTO save(String id) {
+    public ResultDTO delete(String id) {
         return actProcdefService.delete(id);
+    }
+
+
+    @GetMapping("copy")
+    @ApiOperation(value = "复制整个流程", notes = "复制整个流程")
+    public ResultDTO copy(String id) {
+        return actProcdefService.copy(id);
     }
 
 

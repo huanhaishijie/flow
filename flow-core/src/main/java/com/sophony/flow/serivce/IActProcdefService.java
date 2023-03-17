@@ -25,4 +25,6 @@ public interface IActProcdefService {
     ResultDTO<List<ActProcdefRespDto>> list(ActProcdefReqDto reqDto);
 
     ResultDTO updateState(String id);
+
+    ResultDTO copy(String id);
 }
