@@ -29,7 +29,7 @@ public interface IProcess<T extends IProcess> {
      * @return
      */
     default boolean auditBefore(T t){
-        System.out.println("流程审核后回调");
+        System.out.println("流程审核前回调");
         return true;
     }
 
