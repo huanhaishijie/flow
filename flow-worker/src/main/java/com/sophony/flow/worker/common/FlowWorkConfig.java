@@ -14,6 +14,8 @@ public class FlowWorkConfig {
 
     private boolean joinUser;
 
+    private String sqlType;
+
 
     public boolean isValidRole() {
         return validRole;
@@ -29,5 +31,13 @@ public class FlowWorkConfig {
 
     public void setJoinUser(boolean joinUser) {
         this.joinUser = joinUser;
+    }
+
+    public String getSqlType() {
+        return sqlType;
+    }
+
+    public void setSqlType(String sqlType) {
+        this.sqlType = sqlType;
     }
 }

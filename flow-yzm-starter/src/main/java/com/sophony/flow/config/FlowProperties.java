@@ -23,6 +23,8 @@ public class FlowProperties {
     private boolean rolevalid;
     private boolean enable;
 
+    private String sqlType;
+
 
     public boolean isJoinuser() {
         return worker.joinUser;
@@ -48,6 +50,14 @@ public class FlowProperties {
         worker.enable = enable;
     }
 
+    public void setSqlType(String sqlType){
+        worker.sqlType = sqlType;
+    }
+
+    public String getSqlType(){
+        return worker.getSqlType();
+    }
+
     public static class Worker{
 
 
@@ -66,6 +76,8 @@ public class FlowProperties {
          * 是否开启流程
          */
         private boolean enable = true;
+
+        private String sqlType;
 
 
         public boolean isJoinUser() {
@@ -90,6 +102,14 @@ public class FlowProperties {
 
         public void setEnable(boolean enable) {
             this.enable = enable;
+        }
+
+        public String getSqlType() {
+            return sqlType;
+        }
+
+        public void setSqlType(String sqlType) {
+            this.sqlType = sqlType;
         }
     }
 

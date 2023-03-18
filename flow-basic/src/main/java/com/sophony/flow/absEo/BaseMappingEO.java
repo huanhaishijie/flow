@@ -1,8 +1,10 @@
 package com.sophony.flow.absEo;
 
 import com.alibaba.fastjson.JSON;
+import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.utils.ParseSql;
 import com.sophony.flow.commons.SnowFlakeWorker;
+import com.sophony.flow.utils.ParseSqlByMySql;
 import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -20,7 +22,7 @@ import java.util.*;
  * @date 2023/3/7 13:39
  */
 public abstract class BaseMappingEO<R extends BaseMappingEO> implements RowMapper<R> {
-    ParseSql parseSql = new ParseSql(this);
+    ParseSql parseSql;
     private String id;
 
 
@@ -199,5 +201,20 @@ public abstract class BaseMappingEO<R extends BaseMappingEO> implements RowMappe
         return r;
     }
 
+
+    /**
+     * 支持mysql和 postgrepsql 两种数据解析
+     */
+    public BaseMappingEO(){
+        String sqlType = BusParam.getInstance().getSqlType();
+        switch (sqlType){
+            case "mysql":
+                this.parseSql = new ParseSqlByMySql(this);
+                break;
+            case "postgresql":
+                this.parseSql = new ParseSql(this);
+                break;
+        }
+    }
 
 }

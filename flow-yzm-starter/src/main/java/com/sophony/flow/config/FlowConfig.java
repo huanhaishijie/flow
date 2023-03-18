@@ -32,6 +32,7 @@ public class FlowConfig {
         FlowWorkConfig flowWorkConfig = new FlowWorkConfig();
         flowWorkConfig.setJoinUser(worker.isJoinUser());
         flowWorkConfig.setValidRole(worker.isRoleValid());
+        flowWorkConfig.setSqlType(worker.getSqlType());
 
         return new FlowSpringJobWorker(flowWorkConfig);
     }

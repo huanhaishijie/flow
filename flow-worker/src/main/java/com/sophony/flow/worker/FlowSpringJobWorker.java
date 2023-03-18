@@ -4,6 +4,7 @@ import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.common.FlowWorkConfig;
 import com.sophony.flow.worker.common.PropertiesValid;
+import com.sophony.flow.worker.common.SqlInitExecute;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,10 +39,10 @@ public class FlowSpringJobWorker extends FlowJobWorker implements ApplicationCon
     public void afterPropertiesSet() throws Exception {
         init();
         new PropertiesValid(flowWorkConfig, FlowBeanFactory.getInstance());
-        ThreadLocal threadLocal = BusParam.getInstance().getThreadLocal();
-        Map<String, String> setting = new ConcurrentHashMap<>();
-        setting.put("sqlType", "MYSQL");
-        threadLocal.set(setting);
+        SqlInitExecute sqlInit = (SqlInitExecute)BusParam.getInstance().getMap().get("SqlInit");
+        sqlInit.execute();
+
+
     }
 
     @Override

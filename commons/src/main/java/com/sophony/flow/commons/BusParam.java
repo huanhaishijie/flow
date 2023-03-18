@@ -11,6 +11,7 @@ import java.util.Map;
  * @date 2023/3/17 16:07
  */
 public class BusParam {
+    String sqlType;
 
     private ThreadLocal<Map<String, Object>> threadLocal = new ThreadLocal<>();
     private BusParam(){
@@ -25,8 +26,20 @@ public class BusParam {
         return BusParam.SingletonHoder.instance;
     }
 
-    public ThreadLocal getThreadLocal(){
-        return threadLocal;
+    public void setMap(Map<String, Object> map){
+        if(map.containsKey("sqlType")){
+            sqlType = String.valueOf(map.get("sqlType"));
+        }
+        threadLocal.set(map);
     }
+
+    public Map<String, Object> getMap(){
+        return threadLocal.get();
+    }
+
+    public String getSqlType() {
+        return sqlType;
+    }
+
 
 }
