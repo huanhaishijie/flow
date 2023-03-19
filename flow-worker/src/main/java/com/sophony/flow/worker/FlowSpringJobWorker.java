@@ -1,18 +1,18 @@
 package com.sophony.flow.worker;
 
 import com.sophony.flow.commons.BusParam;
+import com.sophony.flow.worker.cache.FlowCacheService;
 import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.common.FlowWorkConfig;
 import com.sophony.flow.worker.common.PropertiesValid;
 import com.sophony.flow.worker.common.SqlInitExecute;
+import com.sophony.flow.worker.persistence.CachePersistenceService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * FlowSpringJobWorker
@@ -42,11 +42,17 @@ public class FlowSpringJobWorker extends FlowJobWorker implements ApplicationCon
         SqlInitExecute sqlInit = (SqlInitExecute)BusParam.getInstance().getMap().get("SqlInit");
         sqlInit.execute();
 
+        //存储化
+        FlowBeanFactory.getInstance().getBean(FlowCacheService.class).init();
+
+
+
 
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         FlowBeanFactory.getInstance().setApplicationContext(applicationContext);
+
     }
 }

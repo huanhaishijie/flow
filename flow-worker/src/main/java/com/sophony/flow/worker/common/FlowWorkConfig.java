@@ -16,6 +16,16 @@ public class FlowWorkConfig {
 
     private String sqlType;
 
+    /**
+     * 是否开启缓存
+     */
+    private boolean openCache;
+
+    /**
+     * 缓存类型 redis 默认h2
+     */
+    private String cacheType;
+
 
     public boolean isValidRole() {
         return validRole;
@@ -39,5 +49,22 @@ public class FlowWorkConfig {
 
     public void setSqlType(String sqlType) {
         this.sqlType = sqlType;
+    }
+
+
+    public boolean isOpenCache() {
+        return openCache;
+    }
+
+    public void setOpenCache(boolean openCache) {
+        this.openCache = openCache;
+    }
+
+    public String getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(String cacheType) {
+        this.cacheType = cacheType;
     }
 }

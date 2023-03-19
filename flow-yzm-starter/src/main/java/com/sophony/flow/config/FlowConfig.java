@@ -2,7 +2,9 @@ package com.sophony.flow.config;
 
 import com.sophony.flow.worker.FlowJobWorker;
 import com.sophony.flow.worker.FlowSpringJobWorker;
+import com.sophony.flow.worker.cache.FlowCacheService;
 import com.sophony.flow.worker.common.FlowWorkConfig;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -27,12 +29,19 @@ public class FlowConfig {
 
 
     @Bean
+    public FlowCacheService flowCacheService(){
+       return new FlowCacheService();
+    }
+    @Bean
+    @ConditionalOnBean(value = {FlowCacheService.class})
     public FlowJobWorker initFlow(FlowProperties properties){
         FlowProperties.Worker worker = properties.getWorker();
         FlowWorkConfig flowWorkConfig = new FlowWorkConfig();
         flowWorkConfig.setJoinUser(worker.isJoinUser());
         flowWorkConfig.setValidRole(worker.isRoleValid());
         flowWorkConfig.setSqlType(worker.getSqlType());
+        flowWorkConfig.setCacheType(worker.getCacheType());
+        flowWorkConfig.setOpenCache(worker.isOpenCache());
 
         return new FlowSpringJobWorker(flowWorkConfig);
     }

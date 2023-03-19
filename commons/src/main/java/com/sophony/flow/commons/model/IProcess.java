@@ -1,5 +1,7 @@
 package com.sophony.flow.commons.model;
 
+import java.io.Serializable;
+
 /**
  * IProcess
  *
@@ -8,7 +10,7 @@ package com.sophony.flow.commons.model;
  * @description
  * @date 2023/3/9 23:33
  */
-public interface IProcess<T extends IProcess> {
+public interface IProcess<T extends IProcess> extends Serializable {
 
 
     default T construction(){

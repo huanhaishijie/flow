@@ -13,12 +13,17 @@ public class User<T> {
     /**
      * 用户姓名
      */
-    String userName;
+    private String userName;
+
+    /**
+     * 用户id
+     */
+    private String userId;
 
     /**
      * 拓展数据，用userinfo做key插入expand中
      */
-    T data;
+    private T data;
 
     public String getUserName() {
         return userName;
@@ -36,8 +41,11 @@ public class User<T> {
         this.data = data;
     }
 
+    public String getUserId() {
+        return userId;
+    }
 
-
-
-
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }

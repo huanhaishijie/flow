@@ -2,8 +2,13 @@ package com.sophony.flow.worker.modle;
 
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.model.IProcess;
+import com.sophony.flow.worker.cache.FlowCacheService;
 import com.sophony.flow.worker.common.FlowBeanFactory;
+import com.sophony.flow.worker.core.ExpandService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+
+import java.util.Objects;
 
 /**
  * ProcessModel
@@ -17,7 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public abstract class ProcessModel implements IProcess {
 
-    private FlowBeanFactory flowBeanFactory = FlowBeanFactory.getInstance();
+
+    private String key = "PROCESS";
 
     private String processId;
 
@@ -47,18 +53,16 @@ public abstract class ProcessModel implements IProcess {
         this.processId = processId;
         this.operation = operation;
         this.isCleanCache = isCleanCache;
-
-
-        //是否清除缓存
-        //是否清除缓存
-        //是否清除缓存
-        //是否清除缓存
-        //是否清除缓存
-        //是否清除缓存
-        //是否清除缓存
-
         if(isCleanCache){
+            FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
+            ExpandService expandService = FlowBeanFactory.getInstance().getBean(ExpandService.class);
+            User currentUser = expandService.getCurrentUser();
+            String userId = "None";
+            if(Objects.nonNull(currentUser) && Objects.nonNull(currentUser.getUserId())){
+                userId = currentUser.getUserId();
+            }
 
+            cacheService.hdel(key + userId, processId);
         }
         this.construction();
     }
@@ -80,42 +84,33 @@ public abstract class ProcessModel implements IProcess {
 
     }
 
-
-
-    /**
-     *             ⚠
-     *           ⚠ ⚠ ⚠
-     *         ⚠   ⚠    ⚠
-     *       ⚠     ⚠      ⚠
-     *     ⚠                ⚠
-     *   ⚠         O          ⚠
-     * ⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠
-     *  ⚠这一层后续要做缓存设计⚠
-     *  ⚠这一层后续要做缓存设计
-     *  ⚠这一层后续要做缓存设计
-     *  这一层后续要做缓存设计
-     *  这一层后续要做缓存设计
-     *  这一层后续要做缓存设计
-     *  这一层后续要做缓存设计
-     *  这一层后续要做缓存设计
-     *
-     */
-
     @Override
     public IProcess construction() {
         if(StringUtils.isEmpty(this.getProcessId())){
             return this;
         }
+        FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
+        ExpandService expandService = FlowBeanFactory.getInstance().getBean(ExpandService.class);
+        User currentUser = expandService.getCurrentUser();
+        String userId = "None";
+        if(Objects.nonNull(currentUser) && Objects.nonNull(currentUser.getUserId())){
+            userId = currentUser.getUserId();
+        }
+        ProcessModel processModel = cacheService.hget(key + userId, processId, this.getClass());
+        if(Objects.nonNull(processModel)){
+            this.setAudit(processModel.isAudit());
+            this.setWithdraw(processModel.isWithdraw());
+            this.setTaskNode(processModel.getTaskNode());
+            return this;
+        }
         init();
+        cacheService.hset(key + userId, processId, this, 5 * 60L);
         return this;
     }
 
     public abstract void init();
 
 
-    public FlowBeanFactory getFlowBeanFactory() {
-        return flowBeanFactory;
-    }
 
 
     public ProcessOperationEnum getOperation() {

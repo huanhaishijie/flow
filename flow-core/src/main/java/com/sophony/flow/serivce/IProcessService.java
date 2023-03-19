@@ -45,4 +45,11 @@ public interface IProcessService {
      * @return
      */
     ResultDTO withdraw(WithdrawReqDto reqDto);
+
+    /**
+     * 获取详情
+     * @param processId
+     * @return
+     */
+    ResultDTO getDetail(String processId);
 }

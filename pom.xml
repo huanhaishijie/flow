@@ -26,6 +26,9 @@
         <swagger2.version>2.10.5</swagger2.version>
         <lombok.version>1.18.24</lombok.version>
         <version.jakarta.validation-api>2.0.2</version.jakarta.validation-api>
+        <h2.db.version>2.1.214</h2.db.version>
+        <hikaricp.version>4.0.3</hikaricp.version>
+        <spring.redis.version>2.3.6.RELEASE</spring.redis.version>
     </properties>
 
     <dependencies>
@@ -78,22 +81,22 @@
 
 
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-source-plugin</artifactId>-->
+<!--                <version>2.4</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>attach-sources</id>-->
+<!--                        <goals>-->
+<!--                            <goal>jar</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
 
 </project>

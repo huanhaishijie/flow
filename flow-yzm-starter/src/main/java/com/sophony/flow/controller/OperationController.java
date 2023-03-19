@@ -53,6 +53,13 @@ public class OperationController {
     }
 
 
+    @GetMapping("getDetail")
+    @ApiOperation(value = "获取详情", notes = "获取详情")
+    public ResultDTO getDetail(String processId) {
+        return processService.getDetail(processId);
+    }
+
+
 
 
 

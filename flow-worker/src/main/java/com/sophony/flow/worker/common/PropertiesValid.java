@@ -98,7 +98,10 @@ public class PropertiesValid {
                 setting.put("SqlInit", postgreSql);
             }
         }
+        setting.put("openCache", flowWorkConfig.isOpenCache());
+        setting.put("cacheType", flowWorkConfig.getCacheType());
         BusParam.getInstance().setMap(setting);
+
     }
 
 

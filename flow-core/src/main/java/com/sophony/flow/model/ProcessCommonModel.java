@@ -1,5 +1,6 @@
 package com.sophony.flow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.constant.ProcessTaskStateEnum;
 import com.sophony.flow.mapping.ActProcessTask;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
  * @description
  * @date 2023/3/10 13:01
  */
+
+@JsonIgnoreProperties({"isCleanCache", "operation"})
 public class ProcessCommonModel extends ProcessModel {
 
 
@@ -38,7 +41,7 @@ public class ProcessCommonModel extends ProcessModel {
 
     @Override
     public void init() {
-        FlowBeanFactory flowBeanFactory = this.getFlowBeanFactory();
+        FlowBeanFactory flowBeanFactory = FlowBeanFactory.getInstance();
         ProcessServiceImpl service = flowBeanFactory.getBean(ProcessServiceImpl.class);
         if(Objects.isNull(service)){
             return;

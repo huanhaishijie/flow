@@ -534,6 +534,12 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         return ResultDTO.success("成功");
     }
 
+    @Override
+    public ResultDTO getDetail(String processId) {
+        ProcessCommonModel processCommonModel = new ProcessCommonModel(processId);
+        return ResultDTO.success(processCommonModel);
+    }
+
 
     private boolean beforeNotify(String processId, String hookName, ProcessOperationEnum processOperationEnum){
         if(StringUtils.isEmpty(hookName)){

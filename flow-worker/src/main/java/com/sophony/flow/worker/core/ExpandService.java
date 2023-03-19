@@ -147,4 +147,16 @@ public class ExpandService implements DataService {
     }
 
 
+    public User getCurrent(){
+        User user = new User();
+        if(flowUserInfo == null){
+            user.setUserId("None");
+            user.setUserName("None");
+        }else {
+             user = flowUserInfo.getCurrentUser();
+        }
+        return user;
+    }
+
+
 }

@@ -25,6 +25,11 @@ public class FlowProperties {
 
     private String sqlType;
 
+    private boolean openCache;
+
+    private String cacheType;
+
+
 
     public boolean isJoinuser() {
         return worker.joinUser;
@@ -58,6 +63,23 @@ public class FlowProperties {
         return worker.getSqlType();
     }
 
+    public void setOpenCache(boolean openCache){
+        worker.openCache = openCache;
+    }
+
+    public boolean isOpenCache(){
+        return worker.openCache;
+    }
+
+
+    public void setCacheType(String cacheType){
+        worker.cacheType = cacheType;
+    }
+
+    public String getCacheType() {
+        return worker.cacheType;
+    }
+
     public static class Worker{
 
 
@@ -78,6 +100,17 @@ public class FlowProperties {
         private boolean enable = true;
 
         private String sqlType;
+
+
+        /**
+         * 是否开启缓存
+         */
+        private boolean openCache = true;
+
+        /**
+         * 缓存类型， 目前支持H2， redis
+         */
+        private String cacheType = "H2";
 
 
         public boolean isJoinUser() {
@@ -110,6 +143,23 @@ public class FlowProperties {
 
         public void setSqlType(String sqlType) {
             this.sqlType = sqlType;
+        }
+
+
+        public boolean isOpenCache() {
+            return openCache;
+        }
+
+        public void setOpenCache(boolean openCache) {
+            this.openCache = openCache;
+        }
+
+        public String getCacheType() {
+            return cacheType;
+        }
+
+        public void setCacheType(String cacheType) {
+            this.cacheType = cacheType;
         }
     }
 
