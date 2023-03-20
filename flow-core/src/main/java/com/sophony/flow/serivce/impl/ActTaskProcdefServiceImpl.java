@@ -55,6 +55,23 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
             if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && reqDto.getPreTaskIds().contains(reqDto.getId())){
                     return ResultDTO.failed("所选上一级节点不能包含自己");
             }
+            String parentSql =  actTaskProcdef.getQuerySql() + "where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
+            try {
+                List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class);
+                parents.forEach(it -> {
+                    ActTaskProcdef act = new ActTaskProcdef();
+                    act.setId(it.getId());
+                    String nextTaskIds = it.getNextTaskIds().replace(actTaskProcdef.getId()+",", "");
+                    nextTaskIds = nextTaskIds.replace(actTaskProcdef.getId(), "");
+                    act.setNextTaskIds(nextTaskIds);
+                    super.updateById(act);
+                });
+            }catch (Exception e){
+
+            }
+
+
+
 
             if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds())){
                 String ids = reqDto.getPreTaskIds().stream().collect(Collectors.joining(","));
