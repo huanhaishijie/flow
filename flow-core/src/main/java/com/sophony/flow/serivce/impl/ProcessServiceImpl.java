@@ -4,6 +4,8 @@ import com.sophony.flow.annotation.FLowLock;
 import com.sophony.flow.api.reqDto.ApproveReqDto;
 import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
+import com.sophony.flow.api.respDto.ActProcessTaskRespDto;
+import com.sophony.flow.api.respDto.ProcessRespDto;
 import com.sophony.flow.common.FlowNotify;
 import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.ResultDTO;
@@ -551,8 +553,40 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
     @Override
     public ResultDTO getDetail(String processId) {
-        ProcessCommonModel processCommonModel = new ProcessCommonModel(processId);
-        return ResultDTO.success(processCommonModel);
+        //ProcessCommonModel processCommonModel = new ProcessCommonModel(processId);
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        ProcessRespDto processRespDto = (ProcessRespDto)actProcess.copyProperties(ProcessRespDto.class);
+        Optional.ofNullable(actProcess.getState()).ifPresent(it -> processRespDto.setState(ProcessStateEnum.getByName(it).getDescription()));
+        return ResultDTO.success(actProcess);
+    }
+
+
+    /**
+     * 获取任务历史
+     * @param processId
+     * @return
+     */
+    @Override
+    public ResultDTO getTaskHistory(String processId) {
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        String taskHistory = actProcess.getTaskHistory();
+        if(StringUtils.isEmpty(taskHistory)){
+            return ResultDTO.success(null);
+        }
+        String[] taskIds = taskHistory.split(",");
+        String joinSql = "";
+        for(int i = 0; i < taskIds.length; i++){
+            joinSql += " UNION all select " + taskIds[i] +" id, "+ i +" sort";
+        }
+        joinSql = joinSql.replaceFirst("UNION all", "");
+        String sql = "select a.* from " +new ActProcessTask().getTableName() + " a, (" + joinSql + ") b where a.id = b.id order by b.sort";
+        List<ActProcessTask> list = super.list(sql, ActProcessTask.class);
+        List<ActProcessTaskRespDto> respDtos = list.stream().map(it -> {
+            ActProcessTaskRespDto actProcessTaskRespDto = (ActProcessTaskRespDto) it.copyProperties(ActProcessTaskRespDto.class);
+            actProcessTaskRespDto.setState(ProcessTaskStateEnum.getByName(it.getState()).getDescription());
+            return actProcessTaskRespDto;
+        }).collect(Collectors.toList());
+        return ResultDTO.success(respDtos);
     }
 
 

@@ -1,5 +1,8 @@
 package com.sophony.flow.commons.constant;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * ProcessState
  *
@@ -38,6 +41,9 @@ public enum ProcessStateEnum {
         this.description = description;
     }
 
+    public static ProcessTaskStateEnum getByName(String name){
+        return Arrays.asList(ProcessTaskStateEnum.values()).stream().filter(it -> Objects.equals(name, it.getName())).findFirst().get();
+    }
 
 
 

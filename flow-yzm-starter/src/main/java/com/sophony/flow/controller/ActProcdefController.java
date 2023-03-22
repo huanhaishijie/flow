@@ -59,6 +59,13 @@ public class ActProcdefController {
     }
 
 
+    @GetMapping("detail")
+    @ApiOperation(value = "获取详情", notes = "获取详情")
+    public ResultDTO<ActProcdefRespDto> detail(String id) {
+        return actProcdefService.detail(id);
+    }
+
+
     @GetMapping("updateState")
     @ApiOperation(value = "更新状态", notes = "更新状态")
     public ResultDTO updateState(String id) {

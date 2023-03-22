@@ -31,4 +31,7 @@ public class ActProcdefRespDto {
     @ApiModelProperty(name = "description", value = "流程简介")
     private String description;
 
+    @ApiModelProperty(name = "version", value = "版本")
+    private String version;
+
 }

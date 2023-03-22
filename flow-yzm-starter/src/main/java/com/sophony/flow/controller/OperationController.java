@@ -60,6 +60,13 @@ public class OperationController {
     }
 
 
+    @GetMapping("getTaskHistory")
+    @ApiOperation(value = "获取任务历史", notes = "获取任务历史")
+    public ResultDTO getTaskHistory(String processId) {
+        return processService.getTaskHistory(processId);
+    }
+
+
 
 
 

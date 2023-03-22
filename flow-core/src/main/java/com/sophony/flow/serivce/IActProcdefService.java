@@ -27,4 +27,7 @@ public interface IActProcdefService {
     ResultDTO updateState(String id);
 
     ResultDTO copy(String id);
+
+    ResultDTO<ActProcdefRespDto> detail(String id);
+
 }

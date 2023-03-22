@@ -52,4 +52,11 @@ public interface IProcessService {
      * @return
      */
     ResultDTO getDetail(String processId);
+
+    /**
+     * 获取任务历史
+     * @param processId
+     * @return
+     */
+    ResultDTO getTaskHistory(String processId);
 }

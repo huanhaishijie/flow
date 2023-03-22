@@ -131,6 +131,23 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
         return ResultDTO.success("成功");
     }
 
+
+    @Override
+    public ResultDTO<ActProcdefRespDto> detail(String id) {
+        ActProcdef actProcdef = super.getById(id, ActProcdef.class);
+        if(Objects.isNull(actProcdef)){
+            return ResultDTO.failed("不存在的数据");
+        }
+        ActProcdefRespDto actProcdefRespDto = (ActProcdefRespDto) actProcdef.copyProperties(ActProcdefRespDto.class);
+        if(!CollectionUtils.isEmpty(actProcdef.getExpansionData()) && actProcdef.getExpansionData().containsKey("version")){
+            actProcdefRespDto.setVersion(String.valueOf(actProcdef.getExpansionData().get("version")));
+        }
+        return ResultDTO.success(actProcdefRespDto);
+    }
+
+
+
+
     private void copyNode(String processId, List<ActTaskProcdef> taskTemplates){
         Map<String, ActTaskProcdef> actTaskProcdefMap = taskTemplates.stream().collect(Collectors.toMap(it -> it.getId(), it -> it));
         Map<String, String> idMapping = new HashMap<>();

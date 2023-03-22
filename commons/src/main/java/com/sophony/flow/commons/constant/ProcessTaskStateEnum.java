@@ -38,6 +38,6 @@ public enum ProcessTaskStateEnum {
     }
 
     public static ProcessTaskStateEnum getByName(String name){
-        return Arrays.asList(ProcessTaskStateEnum.values()).stream().filter(it -> Objects.equals(name, it.name)).findFirst().get();
+        return Arrays.asList(ProcessTaskStateEnum.values()).stream().filter(it -> Objects.equals(name, it.getName())).findFirst().get();
     }
 }
