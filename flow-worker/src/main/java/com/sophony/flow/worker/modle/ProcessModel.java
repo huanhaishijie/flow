@@ -1,13 +1,16 @@
 package com.sophony.flow.worker.modle;
 
+import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.model.IProcess;
+import com.sophony.flow.mapping.ActProcessTask;
 import com.sophony.flow.worker.cache.FlowCacheService;
 import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.core.ExpandService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -39,6 +42,10 @@ public abstract class ProcessModel implements IProcess {
 
 
     private Object t;
+
+    private ActProcessTask finishNode;
+
+    private String businessParams;
 
 
 
@@ -152,5 +159,27 @@ public abstract class ProcessModel implements IProcess {
 
     public void setTaskNode(TaskNode taskNode) {
         this.taskNode = taskNode;
+    }
+
+    public ActProcessTask getFinishNode() {
+        return finishNode;
+    }
+
+    public void setFinishNode(ActProcessTask finishNode) {
+        this.finishNode = finishNode;
+    }
+
+    public String getBusinessParams() {
+        return businessParams;
+    }
+
+    public void setBusinessParams(String businessParams) {
+        this.businessParams = businessParams;
+    }
+
+
+    public void afterInit(ActProcessTask finishNode, String businessParams){
+        this.finishNode = finishNode;
+        this.businessParams = businessParams;
     }
 }

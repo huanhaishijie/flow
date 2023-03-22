@@ -4,6 +4,9 @@ import com.sophony.flow.commons.constant.NotifyEnum;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.model.IProcess;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * FlowNotify
  *
@@ -21,6 +24,8 @@ public class FlowNotify {
 
 
     IProcess hook;
+
+    Map<String, Object> business = new ConcurrentHashMap<>();
 
 
     public NotifyEnum getNotifyEnum() {
@@ -47,5 +52,15 @@ public class FlowNotify {
         this.hook = hook;
     }
 
+    public ProcessOperationEnum getProcessOperationEnum() {
+        return processOperationEnum;
+    }
 
+    public void setProcessOperationEnum(ProcessOperationEnum processOperationEnum) {
+        this.processOperationEnum = processOperationEnum;
+    }
+
+    public Map<String, Object> getBusiness() {
+        return business;
+    }
 }

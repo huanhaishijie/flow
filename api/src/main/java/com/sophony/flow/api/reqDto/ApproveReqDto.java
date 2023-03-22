@@ -29,6 +29,9 @@ public class ApproveReqDto {
     @ApiModelProperty(name = "content", value = "审核备注/理由")
     private String content;
 
+    @ApiModelProperty(name = "otherParam", value = "审核拓展参数")
+    private String otherParam;
+
 
     public String getProcessId() {
         return processId;
@@ -48,5 +51,14 @@ public class ApproveReqDto {
 
     public ProcessOperationEnum getOperation() {
         return operation;
+    }
+
+
+    public String getOtherParam() {
+        return otherParam;
+    }
+
+    public void setOtherParam(String otherParam) {
+        this.otherParam = otherParam;
     }
 }

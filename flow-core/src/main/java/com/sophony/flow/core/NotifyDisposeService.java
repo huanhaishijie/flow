@@ -2,12 +2,14 @@ package com.sophony.flow.core;
 
 import com.sophony.flow.common.FlowNotify;
 import com.sophony.flow.event.FlowRegisterEvent;
+import com.sophony.flow.mapping.ActProcessTask;
 import com.sophony.flow.model.ProcessCommonModel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,15 +33,21 @@ public class NotifyDisposeService {
         if(Objects.isNull(flowNotify.getHook())){
             return;
         }
+        ProcessCommonModel processCommonModel = new ProcessCommonModel();
+        processCommonModel.setProcessId(flowNotify.getProcessId());
+        processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+
         switch (flowNotify.getNotifyEnum()){
             case END:
-                flowNotify.getHook().goEndBack(new ProcessCommonModel(flowNotify.getProcessId()));
+                flowNotify.getHook().goEndBack(processCommonModel);
                 break;
             case START:
-                flowNotify.getHook().start(new ProcessCommonModel(flowNotify.getProcessId()));
+                flowNotify.getHook().start(processCommonModel);
                 break;
             case TASKAUDITAFTER:
-                flowNotify.getHook().auditAfter(new ProcessCommonModel(flowNotify.getProcessId()));
+                Map<String, Object> business = flowNotify.getBusiness();
+                processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
+                flowNotify.getHook().auditAfter(processCommonModel);
                 break;
         }
     }

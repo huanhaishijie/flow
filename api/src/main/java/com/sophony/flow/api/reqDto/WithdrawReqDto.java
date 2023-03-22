@@ -28,6 +28,9 @@ public class WithdrawReqDto {
     @ApiModelProperty(name = "content", value = "审核备注/理由")
     private String content;
 
+    @ApiModelProperty(name = "otherParam", value = "审核拓展参数")
+    private String otherParam;
+
 
 
     public String getProcessId() {
@@ -50,5 +53,11 @@ public class WithdrawReqDto {
         return operation;
     }
 
+    public String getOtherParam() {
+        return otherParam;
+    }
 
+    public void setOtherParam(String otherParam) {
+        this.otherParam = otherParam;
+    }
 }

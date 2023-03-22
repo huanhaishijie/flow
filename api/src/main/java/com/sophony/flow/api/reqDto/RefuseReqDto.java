@@ -32,6 +32,10 @@ public class RefuseReqDto {
     private String content;
 
 
+    @ApiModelProperty(name = "otherParam", value = "审核拓展参数")
+    private String otherParam;
+
+
     public String getProcessId() {
         return processId;
     }
@@ -52,5 +56,11 @@ public class RefuseReqDto {
         return operation;
     }
 
+    public String getOtherParam() {
+        return otherParam;
+    }
 
+    public void setOtherParam(String otherParam) {
+        this.otherParam = otherParam;
+    }
 }

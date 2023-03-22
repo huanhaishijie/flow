@@ -5,7 +5,7 @@ import com.sophony.flow.api.reqDto.ApproveReqDto;
 import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.common.FlowNotify;
-import com.sophony.flow.commons.MD5SingUtil;
+import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.ResultDTO;
 import com.sophony.flow.commons.constant.NotifyEnum;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
@@ -33,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -204,7 +205,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         if(CollectionUtils.isEmpty(actTaskProcdefs)){
             //审核后回调
-            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
             return ResultDTO.success("成功");
         }
         String parentHistory = super.getById(task.getId(), ActProcessTask.class).getSelfHistory();
@@ -226,7 +228,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             actProcessTask.setProcessfId(actProcdef.getId());
             String taskId = super.insert(actProcessTask);
             //审核后回调
-            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
             ActProcess endProcess = new ActProcess();
             endProcess.setId(processId);
             endProcess.setState(ProcessStateEnum.END.getName());
@@ -279,8 +282,9 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 deductionVoucher(id);
             }
         });
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
         //审核后回调
-        afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
+        afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
         return ResultDTO.success("成功");
     }
 
@@ -304,6 +308,14 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         actProcessTask.setVoucherCount(voucherCount);
         actProcessTask.setId(id);
         super.updateById(actProcessTask);
+    }
+
+
+    private Map<String, Object>   afterParamDispose(String taskId, String businessParams){
+        Map<String, Object> map = new ConcurrentHashMap<>();
+        map.put("currentNode", super.getById(taskId, ActProcessTask.class));
+        map.put("businessParams", Objects.isNull(businessParams) ? "": businessParams);
+        return map;
     }
 
     /**
@@ -410,7 +422,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 processTaskRecord(taskId, processId);
             });
             //审核后回调
-            afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+            afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
             return ResultDTO.success("成功");
         }
         //如果没有回退节点
@@ -458,7 +471,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             taskRecord(taskId, it.getId(),  backNode.getSelfHistory());
             processTaskRecord(taskId, processId);
         });
-        afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+        afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
         return ResultDTO.success("成功");
     }
 
@@ -530,7 +544,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         actProcessTask.setVoucher("true");
         actProcessTask.setVoucherCount(1);
         super.insert(actProcessTask);
-        afterNotify(processId, actProcess.getClassName(), reqDto.getOperation());
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+        afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
         return ResultDTO.success("成功");
     }
 
@@ -556,7 +571,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
 
 
-    private void afterNotify(String processId, String hookName, ProcessOperationEnum processOperationEnum){
+    private void afterNotify(String processId, String hookName, ProcessOperationEnum processOperationEnum, Map<String, Object> businessMap){
         if(StringUtils.isEmpty(hookName)){
             return;
         }
@@ -567,6 +582,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.setNotifyEnum(NotifyEnum.TASKAUDITAFTER);
             flowNotify.setHook(hook);
             flowNotify.setProcessId(processId);
+            flowNotify.setProcessOperationEnum(processOperationEnum);
+            flowNotify.getBusiness().putAll(businessMap);
             publisher.publishEvent(new FlowRegisterEvent(flowNotify));
         } catch (Exception e) {
             throw new RuntimeException(e);
