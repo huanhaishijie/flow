@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * RedisCacheService
@@ -23,8 +24,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FlowRedisCacheService implements CacheService{
 
-    @Resource
-    StringRedisTemplate  stringRedisTemplate;
+
+    private final AtomicBoolean atomicBoolean = new AtomicBoolean(true);
+    private StringRedisTemplate  stringRedisTemplate;
 
 
     @Override
@@ -99,4 +101,10 @@ public class FlowRedisCacheService implements CacheService{
     }
 
 
+    public void setStringRedisTemplate(StringRedisTemplate stringRedisTemplate) {
+        if(atomicBoolean.get()){
+            this.stringRedisTemplate = stringRedisTemplate;
+        }
+
+    }
 }

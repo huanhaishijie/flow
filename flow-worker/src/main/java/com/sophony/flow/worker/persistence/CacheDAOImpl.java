@@ -31,7 +31,7 @@ public class CacheDAOImpl implements CacheDAO{
     @Override
     public void initTable() throws Exception{
         String delTableSQL = "drop table if exists cache_info";
-        String createTableSQL = "CREATE TABLE cache_info ( `key` VARCHAR (2000),`group` VARCHAR (2000),value VARCHAR (50000),deathLine BIGINT, `type` VARCHAR (2000), CONSTRAINT pkey UNIQUE (`group`))";
+        String createTableSQL = "CREATE TABLE cache_info ( `key` VARCHAR (2000),`group` VARCHAR (2000),`value` VARCHAR (50000),deathLine BIGINT, `type` VARCHAR (2000), CONSTRAINT pkey UNIQUE (`group`))";
 
         try (Connection conn = connectionFactory.getConnection(); Statement stat = conn.createStatement()) {
             stat.execute(delTableSQL);

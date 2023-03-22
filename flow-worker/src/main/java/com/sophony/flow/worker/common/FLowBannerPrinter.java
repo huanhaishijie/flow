@@ -28,7 +28,7 @@ public final class FLowBannerPrinter {
     public static void print() {
         log.info(BANNER);
 
-        String version = "1.0.0";
+        String version = "3.0.0";
         version = (version != null) ? " (v" + version + ")" : "";
         log.info(":: Flow Worker :: {}", version);
     }

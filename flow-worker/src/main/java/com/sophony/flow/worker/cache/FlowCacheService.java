@@ -4,7 +4,10 @@ import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.persistence.CacheDAO;
 import com.sophony.flow.worker.persistence.CachePersistenceService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -15,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @description 缓存服务
  * @date 2023/3/19 16:17
  */
+@Slf4j
 public class FlowCacheService {
 
     /**
@@ -50,6 +54,12 @@ public class FlowCacheService {
                 break;
             case "redis":
                 cacheService = FlowBeanFactory.getInstance().getBean(FlowRedisCacheService.class);
+                StringRedisTemplate stringRedisTemplate = FlowBeanFactory.getInstance().getBean(StringRedisTemplate.class);
+                if(Objects.isNull(stringRedisTemplate)){
+                    log.info("当前环境需要配置redis");
+                    FlowBeanFactory.getInstance().shutdown();
+                }
+                ((FlowRedisCacheService)cacheService).setStringRedisTemplate(stringRedisTemplate);
                 break;
         }
         f.set(false);
