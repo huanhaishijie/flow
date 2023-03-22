@@ -73,6 +73,9 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
         }
         List<ActProcdefRespDto> collect = list.stream().map(it -> {
             ActProcdefRespDto actProcdefRespDto = (ActProcdefRespDto)it.copyProperties(ActProcdefRespDto.class);
+            if(!CollectionUtils.isEmpty(it.getExpansionData()) && it.getExpansionData().containsKey("version")){
+                actProcdefRespDto.setVersion(String.valueOf(it.getExpansionData().get("version")));
+            }
             return actProcdefRespDto;
         }).collect(Collectors.toList());
 
@@ -83,7 +86,7 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
     public ResultDTO updateState(String id) {
         ActProcdef actProcdef = super.getById(id, ActProcdef.class);
         String actNo = actProcdef.getActNo();
-        ActProcdef temp = super.selectOne(actProcdef.getQuerySql() + " where is_deleted = 0 and act_no = ?", actProcdef.getClass(), new Object[]{actProcdef.getActNo()});
+        ActProcdef temp = super.selectOne(actProcdef.getQuerySql() + " where is_deleted = 0 and act_no = ? and state = '1' limit 1", actProcdef.getClass(), new Object[]{actProcdef.getActNo()});
         if(Objects.nonNull(temp)){
             return ResultDTO.failed(actNo+": 一个编号只能激活一个, 要想激活当前流程，请先冻结其它相同编号流程");
         }
@@ -108,7 +111,7 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
     public ResultDTO copy(String id) {
         ActProcdef actProcdef = super.getById(id, ActProcdef.class);
         Map expansionData = actProcdef.getExpansionData();
-        if(Objects.nonNull(actProcdef)){
+        if(Objects.isNull(actProcdef)){
             return ResultDTO.failed("不存在的流程");
         }
         if(!expansionData.containsKey("version")){

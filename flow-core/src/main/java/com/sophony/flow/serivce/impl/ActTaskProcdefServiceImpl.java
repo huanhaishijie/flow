@@ -8,6 +8,7 @@ import com.sophony.flow.mapping.ActTaskProcdef;
 import com.sophony.flow.serivce.IActTaskProcdefService;
 import com.sophony.flow.worker.common.BaseService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -26,6 +27,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultDTO save(ActTaskProcdefReqDto reqDto) {
         ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
         actTaskProcdef.copyProperties(reqDto);
@@ -37,16 +39,21 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
         if(!StringUtils.isNotBlank(reqDto.getProcessFid())){
             return ResultDTO.failed("没有审批流程模板id");
         }
+        if(!CollectionUtils.isEmpty(reqDto.getBackTasks())){
+            String ids = reqDto.getBackTasks().stream().collect(Collectors.joining(","));
+            actTaskProcdef.setBackTasks(ids);
+        }
+
         actTaskProcdef.getQuerySql();
         ActTaskProcdef temp = super.selectOne(actTaskProcdef.getQuerySql() + " where is_deleted = 0 and task_no = ? ", ActTaskProcdef.class, new Object[]{reqDto.getTaskNo()});
-        if(Objects.nonNull(temp)){
+        if(Objects.nonNull(temp) && org.apache.commons.lang3.StringUtils.isEmpty(reqDto.getId())){
            return  ResultDTO.failed("当前节点编号已经存在，请重新命名编号");
         }
 
         if(StringUtils.isNotBlank(actTaskProcdef.getId())){
             ActTaskProcdef taskProcdef = super.getById(reqDto.getId(), ActTaskProcdef.class);
             if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && StringUtils.isNotBlank(taskProcdef.getNextTaskIds())){
-                List<String> nextIds = Arrays.asList(taskProcdef.getNextTaskIds().split(","));
+                List<String> nextIds = new ArrayList<>(Arrays.asList(taskProcdef.getNextTaskIds().split(",")));
                 boolean b = nextIds.retainAll(reqDto.getPreTaskIds());
                 if(!b){
                     return ResultDTO.failed("下一级节点和上一级节点冲突");
@@ -55,7 +62,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
             if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && reqDto.getPreTaskIds().contains(reqDto.getId())){
                     return ResultDTO.failed("所选上一级节点不能包含自己");
             }
-            String parentSql =  actTaskProcdef.getQuerySql() + "where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
+            String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
             try {
                 List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class);
                 parents.forEach(it -> {
@@ -79,7 +86,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
                 actTaskProcdefs.forEach(it -> {
                     ActTaskProcdef actf = new ActTaskProcdef();
                     if(StringUtils.isNotBlank(it.getNextTaskIds())){
-                        List<String> list = Arrays.asList(it.getNextTaskIds().split(","));
+                        List<String> list = new ArrayList<>(Arrays.asList(it.getNextTaskIds().split(",")));
                         list.add(reqDto.getId());
                         list.sort(Comparator.reverseOrder());
                         actf.setNextTaskIds(list.stream().collect(Collectors.joining(",")));
@@ -102,7 +109,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
             actTaskProcdefs.forEach(it -> {
                 ActTaskProcdef actf = new ActTaskProcdef();
                 if(StringUtils.isNotBlank(it.getNextTaskIds())){
-                    List<String> list = Arrays.asList(it.getNextTaskIds().split(","));
+                    List<String> list = new ArrayList<>(Arrays.asList(it.getNextTaskIds().split(",")));
                     list.add(id);
                     list.sort(Comparator.reverseOrder());
                     actf.setNextTaskIds(list.stream().collect(Collectors.joining(",")));
@@ -117,9 +124,24 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultDTO delete(String id) {
         ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
         actTaskProcdef.setId(id);
+        String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
+        try {
+            List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class);
+            parents.forEach(it -> {
+                ActTaskProcdef act = new ActTaskProcdef();
+                act.setId(it.getId());
+                String nextTaskIds = it.getNextTaskIds().replace(actTaskProcdef.getId()+",", "");
+                nextTaskIds = nextTaskIds.replace(actTaskProcdef.getId(), "");
+                act.setNextTaskIds(nextTaskIds);
+                super.updateById(act);
+            });
+        }catch (Exception e){
+
+        }
         super.deleteById(actTaskProcdef);
         return ResultDTO.success("成功");
     }

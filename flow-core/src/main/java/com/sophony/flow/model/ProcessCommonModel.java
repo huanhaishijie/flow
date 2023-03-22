@@ -71,6 +71,11 @@ public class ProcessCommonModel extends ProcessModel {
         if(CollectionUtils.isEmpty(preTasks)){
             return;
         }
+        //多节点不允许撤回
+        if(preTasks.size() > 1){
+            this.setWithdraw(false);
+            return;
+        }
         Map<String, ActProcessTask> taskMap = preTasks.stream().collect(Collectors.toMap(it -> it.getTaskNo(), it -> it));
         if(taskMap.containsKey("start")){
             this.setWithdraw(true);

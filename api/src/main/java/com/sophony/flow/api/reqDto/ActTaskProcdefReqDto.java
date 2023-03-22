@@ -30,6 +30,7 @@ public class ActTaskProcdefReqDto {
      *流程模板名称
      */
     @ApiModelProperty(name = "processfName", value = "流程模板名称")
+    @NotBlank(message = "流程模板名称不能为空")
     private String processfName;
 
     /**
@@ -120,5 +121,15 @@ public class ActTaskProcdefReqDto {
 
     public void setPreTaskIds(List<String> preTaskIds) {
         this.preTaskIds = preTaskIds;
+    }
+
+    public List<String> getBackTasks(){
+        if(CollectionUtils.isEmpty(backTasks)){
+            return backTasks;
+        }
+        backTasks.sort(Comparator.reverseOrder());
+        LinkedList<String> objects = new LinkedList<>();
+        objects.addAll(backTasks);
+        return objects;
     }
 }

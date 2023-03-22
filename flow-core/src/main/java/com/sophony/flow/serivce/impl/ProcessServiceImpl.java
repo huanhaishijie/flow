@@ -358,6 +358,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         task.setEndTime(LocalDateTime.now());
         task.setState(ProcessTaskStateEnum.BACK.getName());
         task.setVoucher("false");
+
         User currentUser = getCurrentUser();
         if(Objects.nonNull(currentUser)){
             task.setAuditUser(currentUser.getUserName());
@@ -373,6 +374,32 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.equals(backNode.getTaskNo(), "start")){
             return ResultDTO.failed("流程开始节点不允许回退");
         }
+        //计算当前节点波及节点
+        String parents = actTaskProcdef.getPreTaskIds();
+        Set<String> scopeIdsSet = new HashSet<>();
+        if(StringUtils.isNotEmpty(parents)){
+            Set<String> childIds = new HashSet<>();
+            List<String> list = Arrays.asList(parents.split(","));
+            list.forEach(it -> {
+                ActTaskProcdef actTF = super.getById(it, ActTaskProcdef.class);
+                for(String childId : actTF.getNextTaskIds().split(",")){
+                    childIds.add(childId);
+                }
+            });
+            childIds.forEach(it -> {
+                ActTaskProcdef  actTF = super.getById(it, ActTaskProcdef.class);
+                for (String parentId : actTF.getPreTaskIds().split(",")){
+                    scopeIdsSet.add(parentId);
+                }
+            });
+            scopeIdsSet.forEach(it -> {
+                String sql = " update "+ backNode.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
+                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
+                jdbcTemplate.update(sql);
+            });
+
+        }
+        String scopeIds = scopeIdsSet.stream().collect(Collectors.joining(","));
         //校验下一层节点
         String backFTasks = actTaskProcdef.getBackTasks();
         //审核回退节点
@@ -385,7 +412,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
 
             //获取最近的back任务
-            List<String> taskIds = Arrays.asList((actTaskProcdef.getPreTaskIds()+"," +backFTasks).split(",")).stream().map(it -> {
+            List<String> taskIds = Arrays.asList((scopeIds+"," +backFTasks).split(",")).stream().map(it -> {
                 if(selfHistory.lastIndexOf(it) == -1){
                     return null;
                 }
@@ -435,7 +462,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(actTaskProcdef.getPreTaskIds(), ActTaskProcdef.class);
 
-        List<String> taskIds = Arrays.asList(actTaskProcdef.getPreTaskIds().split(",")).stream().map(it -> {
+        List<String> taskIds = Arrays.asList(scopeIds.split(",")).stream().map(it -> {
             if(selfHistory.lastIndexOf(it) == -1){
                 return null;
             }
@@ -529,7 +556,38 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(preTaskId)){
             return ResultDTO.failed("当前任务没有前一个任务节点, 操作失败");
         }
-        interrupted(Arrays.asList(preTaskId), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
+        //计算波动范围
+        ActTaskProcdef actTaskProcdef = super.getById(processTask.getTaskfId(), ActTaskProcdef.class);
+        String parents = actTaskProcdef.getPreTaskIds();
+        Set<String> scopeIdsSet = new HashSet<>();
+        if(StringUtils.isNotEmpty(parents)){
+            Set<String> childIds = new HashSet<>();
+            List<String> list = Arrays.asList(parents.split(","));
+            list.forEach(it -> {
+                ActTaskProcdef actTF = super.getById(it, ActTaskProcdef.class);
+                for(String childId : actTF.getNextTaskIds().split(",")){
+                    childIds.add(childId);
+                }
+            });
+            childIds.forEach(it -> {
+                ActTaskProcdef  actTF = super.getById(it, ActTaskProcdef.class);
+                for (String parentId : actTF.getPreTaskIds().split(",")){
+                    scopeIdsSet.add(parentId);
+                }
+            });
+            ActProcessTask finalProcessTask = processTask;
+            scopeIdsSet.forEach(it -> {
+                String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
+                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
+                jdbcTemplate.update(sql);
+            });
+
+
+        }
+        String scopeIds = scopeIdsSet.stream().collect(Collectors.joining(","));
+        String scopeTaskIds = scopeIdsSet.stream().collect(Collectors.joining(","));
+
+        interrupted(Arrays.asList(scopeIds), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
         processTask = super.getById(preTaskId, ActProcessTask.class);
         ActProcessTask actProcessTask = new ActProcessTask();
         actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());

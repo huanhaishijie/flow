@@ -4,6 +4,7 @@ import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.model.IProcess;
 import com.sophony.flow.mapping.ActProcessTask;
+import com.sophony.flow.worker.base.DataService;
 import com.sophony.flow.worker.cache.FlowCacheService;
 import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.core.ExpandService;
@@ -61,10 +62,13 @@ public abstract class ProcessModel implements IProcess {
         this.operation = operation;
         this.isCleanCache = isCleanCache;
         if(isCleanCache){
-            FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
-            ExpandService expandService = FlowBeanFactory.getInstance().getBean(ExpandService.class);
-            User currentUser = expandService.getCurrentUser();
             String userId = "None";
+            FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
+            DataService expandService = FlowBeanFactory.getInstance().getDataService();
+            User currentUser = null;
+            if(Objects.nonNull(expandService)){
+                currentUser = expandService.getCurrentUser();
+            }
             if(Objects.nonNull(currentUser) && Objects.nonNull(currentUser.getUserId())){
                 userId = currentUser.getUserId();
             }
@@ -96,10 +100,13 @@ public abstract class ProcessModel implements IProcess {
         if(StringUtils.isEmpty(this.getProcessId())){
             return this;
         }
-        FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
-        ExpandService expandService = FlowBeanFactory.getInstance().getBean(ExpandService.class);
-        User currentUser = expandService.getCurrentUser();
         String userId = "None";
+        FlowCacheService cacheService = FlowBeanFactory.getInstance().getBean(FlowCacheService.class);
+        DataService expandService = FlowBeanFactory.getInstance().getDataService();
+        User currentUser = null;
+        if(Objects.nonNull(expandService)){
+            currentUser = expandService.getCurrentUser();
+        }
         if(Objects.nonNull(currentUser) && Objects.nonNull(currentUser.getUserId())){
             userId = currentUser.getUserId();
         }
