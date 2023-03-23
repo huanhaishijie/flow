@@ -809,7 +809,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(process.getTaskHistory())){
             res =  taskId;
         }else {
-            res = ","+ taskId;
+            res += ","+ taskId;
         }
         process = new ActProcess();
         process.setId(processId);

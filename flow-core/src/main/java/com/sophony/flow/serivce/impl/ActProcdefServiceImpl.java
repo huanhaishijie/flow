@@ -163,6 +163,7 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
             actTaskProcdef.setRemark(it.getRemark());
             actTaskProcdef.setTaskNo(it.getTaskNo());
             actTaskProcdef.setTaskName(it.getTaskName());
+            actTaskProcdef.setProcessfName(it.getProcessfName());
             String id = super.insert(actTaskProcdef);
             newTaskProcdefMap.put(id, actTaskProcdef);
             idMapping.put(it.getId(), id);
