@@ -95,6 +95,7 @@ yzm.flow.cacheType=redis/H2 缓存类型
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;入参的id是已经生成流程模板id，如果流程模板已经有流程任务模板，本次任务会连同复制
 
   3. 删除流程模板
+
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actProcdef/delete
 
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
@@ -105,6 +106,7 @@ yzm.flow.cacheType=redis/H2 缓存类型
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;根据流程模板id删除流程模板
 
   4. 获取流程模板详情
+
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actProcdef/delete
 
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
@@ -112,7 +114,18 @@ yzm.flow.cacheType=redis/H2 缓存类型
    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求示例：
    ![img_5.png](img_5.png)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;响应参数说明：
+
+| 字段名         | 字段描述 |
+|-------------|------|
+| actName     | 流程名称 |
+| actNo       | 流程编号 |
+| description | 流程描述 |
+| id          | 流程id |
+| version     | 版本   |
+
   5. 获取所有流程
+
      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actProcdef/list
 
      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
@@ -121,6 +134,7 @@ yzm.flow.cacheType=redis/H2 缓存类型
      ![img_6.png](img_6.png)
 
   6. 激活/冻结流程模板
+
      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actProcdef/updateState
 
      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
@@ -129,6 +143,61 @@ yzm.flow.cacheType=redis/H2 缓存类型
   
      ![img_7.png](img_7.png)
      在实际业务中只有开启流程时，只有激活的模板才能使用。 模板编号可以重复，但是相同编号模板只能激活一个
+
+##### 任务模板
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;任务模板必须关联流程模板， 一个流程模板能关联多个任务模板， 一个流程模板中的任务模板必须包含 start 编号任务模板和 end 编号任务模板，否则任务流程无法工作
+
+  1. 添加和更新流程任务定义
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actTask/save
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：POST
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求示例：
+     
+     ![img_2.png](img_2.png)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求参数说明：
+
+
+| 字段名         | 字段描述                                  |
+|-------------|---------------------------------------|
+| backTasks     | array 回退节点模板，                         |
+| cond       | 条件 值为 and 或 or 默认为and ，当前节点有多个父节点可以使用 |
+| id | 任务id                                  |
+| preTaskIds          | array preTaskIds 父节点模板，               |
+| processFid     | 流程模板id, 必填                            |
+| processfName     | 流程模板名称                                |
+| remark     | 任务备注                                  |
+| sort     | 任务排序                                  |
+| taskName     | 任务名称                                  |
+| taskNo     | 任务编号                                  |
+
+
+  2. 删除流程任务模板节点
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actTask/delete/{id}
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：POST
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求示例：
+    ![img_8.png](img_8.png)
+  3. 根据流程模板id查询节点
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actTask/list/{actId}
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求示例：
+    ![img_10.png](img_10.png)
+  
+  4. 查询详情
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;路由：/flow/actTask/{id}
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求方式：GET
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请求示例：
+    ![img_9.png](img_9.png)
+
 
 
 
