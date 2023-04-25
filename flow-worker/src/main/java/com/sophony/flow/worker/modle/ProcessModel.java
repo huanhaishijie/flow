@@ -31,6 +31,8 @@ public abstract class ProcessModel implements IProcess {
 
     private String processId;
 
+    private String processTemplateId;
+
     private boolean isCleanCache;
 
     private ProcessOperationEnum operation;
@@ -188,5 +190,13 @@ public abstract class ProcessModel implements IProcess {
     public void afterInit(ActProcessTask finishNode, String businessParams){
         this.finishNode = finishNode;
         this.businessParams = businessParams;
+    }
+
+    public String getProcessTemplateId() {
+        return processTemplateId;
+    }
+
+    public void setProcessTemplateId(String processTemplateId) {
+        this.processTemplateId = processTemplateId;
     }
 }

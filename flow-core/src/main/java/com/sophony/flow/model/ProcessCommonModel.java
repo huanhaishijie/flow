@@ -3,6 +3,7 @@ package com.sophony.flow.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.constant.ProcessTaskStateEnum;
+import com.sophony.flow.mapping.ActProcess;
 import com.sophony.flow.mapping.ActProcessTask;
 import com.sophony.flow.serivce.impl.ProcessServiceImpl;
 import com.sophony.flow.worker.common.FlowBeanFactory;
@@ -46,6 +47,9 @@ public class ProcessCommonModel extends ProcessModel {
         if(Objects.isNull(service)){
             return;
         }
+
+        ActProcess actProcess = service.getById(this.getProcessId(), ActProcess.class);
+        this.setProcessTemplateId(actProcess.getActId());
         //获取当前运行的中的任务节点
         List<TaskNode> currentTask = service.getCurrentTask(getProcessId());
         if(CollectionUtils.isEmpty(currentTask)){

@@ -201,9 +201,51 @@ yzm.flow.cacheType=redis/H2 缓存类型
 
 ##### 业务中使用
 
+
+
+     在实际业务中，我们的审核同意、审核拒绝走统一的接口，不再走自定义的审核的接口，（特殊情况下可以自己手动控制流程，不走统一审核流程）
+     
+     IProcess 统一审核时回调，流程开启回到，分为审核前回调、审核后回调、审核结束回调
+          --auditAfter （同步调用）审核前回调，默认返回true， 业务类可重写，根据自己的业务来决定当前流程是否可以审核，返回false，当前审核取消
+               --入参：ProcessCommonModel
+                    --processId:流程Id
+                    --taskNode: TaskNode 当前审核的任务节点
+                    --businessParams:审核时代入额外参数，可自定义作业
+                    --operation：当前审核动作， （审核同意， 审核拒绝， 撤回）
+                    --processTemplateId:当前审核流程模板id
+          --auditBefore （异步/同步调用）审核后调用， 当前任务节点审核结束后，
+               --入参：ProcessCommonModel
+                    --processId:流程Id
+                    --taskNode: TaskNode 当前审核的任务节点
+                    --businessParams:审核时代入额外参数，可自定义作业
+                    --operation：当前审核动作， （审核同意， 审核拒绝， 撤回）
+                    --finishNode：当前审批完成任务节点
+                    --processTemplateId:当前审核流程模板id
+          --goEndBack （异步/同步调用）流程结束回调，
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;构建以下流程:
 
 ![img_11.png](img_11.png)
+
+
+1.创建spring-boot工程
+
+![img_12.png](img_12.png)
+
+
+1.创建demo ![img_13.png](img_13.png)
+
+```
+@Service
+public class DemoService implements IProcess{
+
+     XXXX
+
+}
+
+
+
+```
 
 
 
