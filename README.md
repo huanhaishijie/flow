@@ -199,6 +199,18 @@ yzm.flow.cacheType=redis/H2 缓存类型
     ![img_9.png](img_9.png)
 
 
+##### 业务中使用
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;构建以下流程:
+
+![img_11.png](img_11.png)
+
+
+
+
+
+
+
 
 
    
