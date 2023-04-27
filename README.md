@@ -226,7 +226,16 @@ yzm.flow.cacheType=redis/H2 缓存类型
                     --operation：当前审核动作， （审核同意， 审核拒绝， 撤回）
                     --finishNode：当前审批完成任务节点
                     --processTemplateId:当前审核流程模板id
-          --goEndBack （异步/同步调用）流程结束回调，
+          --goEndBack （异步/同步调用）流程结束回调，当前流程结束时的回调
+                    --入参：ProcessCommonModel
+                         --processId:流程Id
+                         --processTemplateId:当前审核流程模板id
+          --start(异步/同步调用)流程开启回调
+               --入参：ProcessCommonModel
+                    --processId:流程Id
+                    --processTemplateId:当前审核流程模板id
+          当前版本加入了@FLowAsSync注解可放置在以上方法前一行实现异步调用，不加是同步调用。 只对auditBefore和goEndBack以及start有效
+
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;构建以下流程:
 

@@ -122,7 +122,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         flowNotify.setNotifyEnum(NotifyEnum.START);
         flowNotify.setHook(process);
         flowNotify.setProcessId(processId);
-        publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+        this.startNotify(flowNotify, process);
         return processId;
     }
 
@@ -739,6 +739,27 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
 
 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void startNotify(FlowNotify flowNotify, IProcess hook){
+        if(Objects.isNull(hook)){
+            return;
+        }
+        try {
+            //是否异步回调
+            Method auditAfter = hook.getClass().getMethod("start");
+            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+            if(annotationPresent){
+                publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+            }else {
+                ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                processCommonModel.setProcessId(flowNotify.getProcessId());
+                flowNotify.getHook().start(processCommonModel);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
