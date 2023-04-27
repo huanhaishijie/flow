@@ -9,6 +9,7 @@ import com.sophony.flow.api.respDto.ProcessRespDto;
 import com.sophony.flow.common.FlowNotify;
 import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.ResultDTO;
+import com.sophony.flow.commons.annotation.FlowAsSync;
 import com.sophony.flow.commons.constant.NotifyEnum;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.constant.ProcessStateEnum;
@@ -33,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -654,6 +657,15 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }
         try {
             Class<?> aClass = Class.forName(hookName);
+            Method auditBefore = aClass.getMethod("auditBefore");
+
+            /***
+             *后续有基于注解通知拓展
+             */
+            if(Objects.isNull(auditBefore)){
+                return true;
+            }
+
             IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
             return hook.auditBefore(new ProcessCommonModel(processId, processOperationEnum, true));
         } catch (Exception e) {
@@ -670,13 +682,30 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         try {
             Class<?> aClass = Class.forName(hookName);
             IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
+
             FlowNotify flowNotify = new FlowNotify();
             flowNotify.setNotifyEnum(NotifyEnum.TASKAUDITAFTER);
             flowNotify.setHook(hook);
             flowNotify.setProcessId(processId);
             flowNotify.setProcessOperationEnum(processOperationEnum);
             flowNotify.getBusiness().putAll(businessMap);
-            publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+
+            //是否异步回调
+            Method auditAfter = hook.getClass().getMethod("auditAfter");
+            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+            //异步调用
+            if(annotationPresent){
+                publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+            }
+            //同步调用
+            else {
+                ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                processCommonModel.setProcessId(flowNotify.getProcessId());
+                processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                Map<String, Object> business = flowNotify.getBusiness();
+                processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
+                flowNotify.getHook().auditAfter(processCommonModel);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -695,7 +724,21 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.setNotifyEnum(NotifyEnum.END);
             flowNotify.setHook(hook);
             flowNotify.setProcessId(processId);
-            publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+
+
+            //是否异步回调
+            Method auditAfter = hook.getClass().getMethod("auditAfter");
+            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+            if(annotationPresent){
+                publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+            }else {
+                ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                processCommonModel.setProcessId(flowNotify.getProcessId());
+                processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                flowNotify.getHook().auditAfter(processCommonModel);
+            }
+
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
