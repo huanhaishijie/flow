@@ -57,7 +57,7 @@ yzm.flow.cacheType=redis/H2 缓存类型
   <dependency>
        <groupId>com.sophony.flow</groupId>
        <artifactId>flow-yzm-starter</artifactId>
-       <version>3.0.0</version>
+       <version>3.1.0</version>
    </dependency>
 ```
    
