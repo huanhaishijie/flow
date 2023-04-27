@@ -735,7 +735,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
-                flowNotify.getHook().auditAfter(processCommonModel);
+                flowNotify.getHook().goEndBack(processCommonModel);
             }
 
 
