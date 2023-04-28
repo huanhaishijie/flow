@@ -637,7 +637,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         String[] taskIds = taskHistory.split(",");
         String joinSql = "";
         for(int i = 0; i < taskIds.length; i++){
-            joinSql += " UNION all select " + taskIds[i] +" id, "+ i +" sort";
+            joinSql += " UNION all select '" + taskIds[i] +"' id, "+ i +" sort";
         }
         joinSql = joinSql.replaceFirst("UNION all", "");
         String sql = "select a.* from " +new ActProcessTask().getTableName() + " a, (" + joinSql + ") b where a.id = b.id order by b.sort";
@@ -691,7 +691,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.getBusiness().putAll(businessMap);
 
             //是否异步回调
-            Method auditAfter = hook.getClass().getMethod("auditAfter");
+            Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
             boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
             //异步调用
             if(annotationPresent){
@@ -727,7 +727,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
 
             //是否异步回调
-            Method auditAfter = hook.getClass().getMethod("auditAfter");
+            Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
             boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
@@ -751,7 +751,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }
         try {
             //是否异步回调
-            Method auditAfter = hook.getClass().getMethod("start");
+            Method auditAfter = hook.getClass().getMethod("start", IProcess.class);
             boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));

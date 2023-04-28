@@ -253,11 +253,49 @@ yzm.flow.cacheType=redis/H2 缓存类型
 @Service
 public class DemoService implements IProcess{
 
-     XXXX
+
+     @Resource
+     IProcessService processService;
+
+     //审核前调用 这里process是ProcessCommonModel
+     @Override
+     public boolean auditBefore(IProcess process){
+     
+          XXXXXXXX
+     }
+     
+     
+     //审核后调用 这里process是ProcessCommonModel
+     @Override
+     public boolean auditAfter(IProcess process){
+     
+          XXXXXXXX
+     }
+     
+     //流程结束调用 这里process是ProcessCommonModel
+     //@FLowAsSync 异步调用
+     @Override
+     public void goEndBack(IProcess process) {
+          XXXXXXXX
+     }
+     
+     
+     //流程开启回调 这里process是ProcessCommonModel
+      @Override
+      public void start(IProcess process) {
+          XXXXX
+      }
+      
+      
+      
+      //开启流程任务
+      public ResultDTO open() {
+        //start("流程编号", 实现IProcess的实现类，并且是放置在spring容器管理的bean)
+        String processId = processService.start("test1", this);
+        return ResultDTO.success(processId);
+    }
 
 }
-
-
 
 ```
 
