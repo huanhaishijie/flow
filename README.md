@@ -53,6 +53,9 @@ yzm.flow.cacheType=redis/H2 缓存类型
 
 语雀:  https://www.yuque.com/weifeng-1btgr/ysxsg0/roo4oe09exd6atqw
 
+### 视频教程
+哔哩哔哩: https://b23.tv/3w9nYRc
+
 ### 使用方式
   1. 将源码打包，在自己spring-boot项目中引入依赖
     
