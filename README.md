@@ -49,6 +49,9 @@ yzm.flow.cacheType=redis/H2 缓存类型
 
     默认的缓存是H2，放在本地磁盘中，也可以使用redis
 
+### 文档地址
+
+语雀:  https://www.yuque.com/weifeng-1btgr/ysxsg0/roo4oe09exd6atqw
 
 ### 使用方式
   1. 将源码打包，在自己spring-boot项目中引入依赖
