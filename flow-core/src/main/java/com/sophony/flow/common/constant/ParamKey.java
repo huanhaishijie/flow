@@ -12,5 +12,6 @@ public class ParamKey {
 
 
     public static final String CONTENTKEY = "PROCESSCONTEXT";
+    public static final String ACTNO = "ACTNO";
 
 }

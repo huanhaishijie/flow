@@ -27,6 +27,8 @@ public class FlowNotify {
 
     Object objectHook;
 
+    String actNo;
+
     Map<String, Object> business = new ConcurrentHashMap<>();
 
 
@@ -75,5 +77,13 @@ public class FlowNotify {
 
     public Map<String, Object> getBusiness() {
         return business;
+    }
+
+    public String getActNo() {
+        return actNo;
+    }
+
+    public void setActNo(String actNo) {
+        this.actNo = actNo;
     }
 }

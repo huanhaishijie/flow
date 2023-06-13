@@ -52,8 +52,10 @@ public class NotifyDisposeService {
         ProcessCommonModel processCommonModel = new ProcessCommonModel();
         processCommonModel.setProcessId(flowNotify.getProcessId());
         processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+        processCommonModel.setAtcNo(flowNotify.getActNo());
         BusParam.getInstance().setMap(new LinkedHashMap(){{
             put(ParamKey.CONTENTKEY, processCommonModel);
+            put(ParamKey.ACTNO, flowNotify.getActNo());
         }});
         Boolean f = annotationOpenUtils.isOpen();
         Object hook = null;
@@ -104,6 +106,7 @@ public class NotifyDisposeService {
                 processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
                 BusParam.getInstance().setMap(new LinkedHashMap(){{
                     put(ParamKey.CONTENTKEY, processCommonModel);
+                    put(ParamKey.ACTNO, flowNotify.getActNo());
                 }});
                 if(f){
                     Method method = getMethod(hook, FlowAuditAfter.class);

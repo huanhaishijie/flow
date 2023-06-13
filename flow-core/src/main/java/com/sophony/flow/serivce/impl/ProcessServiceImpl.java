@@ -828,7 +828,9 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return;
         }
-
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        String actNo = actProcdef.getActNo();
         if(annotationOpenUtils.isOpen()){
 
             //基于注解通知
@@ -858,9 +860,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             if(processTemplateIds.length == 0){
                 f = true;
             }
-            ActProcess actProcess = super.getById(processId, ActProcess.class);
-            ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-            String actNo = actProcdef.getActNo();
+
 
             for(String processTemplate : processTemplateIds){
                 if(f){
@@ -878,6 +878,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.setProcessId(processId);
             flowNotify.setProcessOperationEnum(processOperationEnum);
             flowNotify.getBusiness().putAll(businessMap);
+            flowNotify.setActNo(actNo);
             //是否异步通知
             boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
@@ -886,10 +887,12 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                processCommonModel.setAtcNo(actNo);
                 Map<String, Object> business = flowNotify.getBusiness();
                 processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
                 BusParam.getInstance().setMap(new LinkedHashMap(){{
                     put(ParamKey.CONTENTKEY, processCommonModel);
+                    put(ParamKey.ACTNO, actNo);
                 }});
                 try {
                     method.invoke(process);
@@ -913,6 +916,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 flowNotify.setProcessId(processId);
                 flowNotify.setProcessOperationEnum(processOperationEnum);
                 flowNotify.getBusiness().putAll(businessMap);
+                flowNotify.setActNo(actNo);
 
                 //是否异步回调
                 Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
@@ -926,6 +930,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                     ProcessCommonModel processCommonModel = new ProcessCommonModel();
                     processCommonModel.setProcessId(flowNotify.getProcessId());
                     processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                    processCommonModel.setAtcNo(actNo);
                     Map<String, Object> business = flowNotify.getBusiness();
                     processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
                     flowNotify.getHook().auditAfter(processCommonModel);
@@ -948,6 +953,11 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return;
         }
+
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        String actNo = actProcdef.getActNo();
+
         if(annotationOpenUtils.isOpen()){
             //基于注解通知
             Object process = null;
@@ -976,9 +986,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             if(processTemplateIds.length == 0){
                 f = true;
             }
-            ActProcess actProcess = super.getById(processId, ActProcess.class);
-            ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-            String actNo = actProcdef.getActNo();
+
 
             for(String processTemplate : processTemplateIds){
                 if(f){
@@ -994,6 +1002,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.setNotifyEnum(NotifyEnum.END);
             flowNotify.setHook(process);
             flowNotify.setProcessId(processId);
+            flowNotify.setActNo(actNo);
             //是否异步通知
             boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
@@ -1002,8 +1011,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                processCommonModel.setAtcNo(actNo);
                 BusParam.getInstance().setMap(new LinkedHashMap(){{
                     put(ParamKey.CONTENTKEY, processCommonModel);
+                    put(ParamKey.ACTNO, actNo);
                 }});
                 try {
                     method.invoke(process);
@@ -1027,8 +1038,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 flowNotify.setNotifyEnum(NotifyEnum.END);
                 flowNotify.setHook(hook);
                 flowNotify.setProcessId(processId);
-
-
+                flowNotify.setActNo(actNo);
                 //是否异步回调
                 Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
                 boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
@@ -1038,6 +1048,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                     ProcessCommonModel processCommonModel = new ProcessCommonModel();
                     processCommonModel.setProcessId(flowNotify.getProcessId());
                     processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                    processCommonModel.setAtcNo(actNo);
                     flowNotify.getHook().goEndBack(processCommonModel);
                 }
 
@@ -1061,6 +1072,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(Objects.isNull(hook)){
             return;
         }
+        ActProcess actProcess = super.getById(flowNotify.getProcessId(), ActProcess.class);
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        String actNo = actProcdef.getActNo();
+        flowNotify.setActNo(actNo);
         try {
             //是否异步回调
             Method auditAfter = hook.getClass().getMethod("start", IProcess.class);
@@ -1070,6 +1085,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }else {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
+                processCommonModel.setAtcNo(actNo);
                 flowNotify.getHook().start(processCommonModel);
             }
         } catch (Exception e) {
@@ -1083,6 +1099,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(Objects.isNull(hook)){
             return;
         }
+        ActProcess actProcess = super.getById(flowNotify.getProcessId(), ActProcess.class);
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        String actNo = actProcdef.getActNo();
+        flowNotify.setActNo(actNo);
         Method method = MethodLoader.getMethod(hook.getClass().getMethods(), FlowAuditStart.class);
         if(Objects.isNull(method)){
             method = MethodLoader.getMethod(hook.getClass().getDeclaredMethods(), FlowAuditStart.class);
@@ -1097,9 +1117,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(processTemplateIds.length == 0){
             f = true;
         }
-        ActProcess actProcess = super.getById(flowNotify.getProcessId(), ActProcess.class);
-        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-        String actNo = actProcdef.getActNo();
+
 
         for(String processTemplate : processTemplateIds){
             if(f){
@@ -1120,8 +1138,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }else {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
+                processCommonModel.setAtcNo(actNo);
                 BusParam.getInstance().setMap(new LinkedHashMap(){{
                     put(ParamKey.CONTENTKEY, processCommonModel);
+                    put(ParamKey.ACTNO, actNo);
                 }});
                 method.invoke(hook);
             }

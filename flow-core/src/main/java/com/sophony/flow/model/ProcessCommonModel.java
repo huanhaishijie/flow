@@ -40,6 +40,8 @@ public class ProcessCommonModel extends ProcessModel {
 
     }
 
+    String atcNo;
+
     @Override
     public void init() {
         FlowBeanFactory flowBeanFactory = FlowBeanFactory.getInstance();
@@ -117,5 +119,11 @@ public class ProcessCommonModel extends ProcessModel {
         super(processId, operation, isCleanCache);
     }
 
+    public String getAtcNo() {
+        return atcNo;
+    }
 
+    public void setAtcNo(String atcNo) {
+        this.atcNo = atcNo;
+    }
 }
