@@ -14,6 +14,11 @@ import java.lang.annotation.*;
 @Documented
 public @interface FlowAuditBefore {
 
+    /**
+     * 匹配模板， 不填默认全匹配
+     * @return
+     */
+
     String[] processTemplateIds();
 
 }

@@ -25,6 +25,14 @@ public interface IProcessService {
     String start(String processNo, IProcess process);
 
 
+
+    /**
+     * 使用流程模板编号开启流程(开启注解版)
+     * @param processNo
+     * @return
+     */
+    String start(String processNo, Class<?> clazz);
+
     /**
      * 审核同意
      * @param approveReqDto

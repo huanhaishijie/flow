@@ -7,9 +7,11 @@ import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.api.respDto.ActProcessTaskRespDto;
 import com.sophony.flow.api.respDto.ProcessRespDto;
 import com.sophony.flow.common.FlowNotify;
+import com.sophony.flow.common.MethodLoader;
+import com.sophony.flow.common.constant.ParamKey;
 import com.sophony.flow.commons.BusParam;
 import com.sophony.flow.commons.ResultDTO;
-import com.sophony.flow.commons.annotation.FlowAsSync;
+import com.sophony.flow.commons.annotation.*;
 import com.sophony.flow.commons.constant.NotifyEnum;
 import com.sophony.flow.commons.constant.ProcessOperationEnum;
 import com.sophony.flow.commons.constant.ProcessStateEnum;
@@ -24,10 +26,12 @@ import com.sophony.flow.model.ProcessCommonModel;
 import com.sophony.flow.serivce.IProcessService;
 import com.sophony.flow.worker.common.BaseService;
 import com.sophony.flow.worker.common.FlowBeanFactory;
+import com.sophony.flow.worker.common.FlowClassLoader;
 import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +39,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -57,6 +62,12 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
     @Resource
     ApplicationEventPublisher publisher;
+
+    @Resource
+    Environment environment;
+
+
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -125,6 +136,86 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         this.startNotify(flowNotify, process);
         return processId;
     }
+
+    @Override
+    public String start(String processNo, Class<?> clazz) {
+        ActProcdef actProcdef = new ActProcdef();
+        String sql = "select * from "+ actProcdef.getTableName() + " where act_no = '"+processNo+"'  and is_deleted = 0 and state = '1' limit 1";
+        actProcdef = super.selectOne(sql, ActProcdef.class, new Object[]{});
+        if(Objects.isNull(actProcdef)){
+            throw new RuntimeException(processNo+": 当前流程模板编号不可用");
+        }
+        ActProcess actProcess = new ActProcess();
+        actProcess.setActId(actProcdef.getId());
+        actProcess.setStartTime(LocalDateTime.now());
+        actProcess.setState(ProcessStateEnum.START.getName());
+        if(Objects.nonNull(clazz)){
+            actProcess.setClassName(clazz.getName());
+        }
+        //查询路程开始节点
+        ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
+        String sql2 = actTaskProcdef.getQuerySql() + " where is_deleted = 0 and (task_no = 'start' or  task_no = 'end') and process_fid = ? ";
+        List<ActTaskProcdef> list = super.list(sql2, ActTaskProcdef.class, new Object[]{actProcdef.getId()});
+        if(CollectionUtils.isEmpty(list)){
+            throw new RuntimeException(processNo+": 当前流程模板没有任务节点");
+        }
+
+        if(list.size() > 2){
+            throw new RuntimeException(processNo+": 当前流程模板有重复开始任务节点或结束任务节点");
+        }
+
+        if(list.size() < 2){
+            throw new RuntimeException(processNo+": 当前流程模板没有开始任务节点或没有结束任务节点");
+        }
+        Set<String> keys = list.stream().map(it -> it.getTaskNo()).collect(Collectors.toSet());
+        if(keys.size() < 2 && keys.contains("start")){
+            throw new RuntimeException(processNo+": 当前流程模板没有结束任务节点");
+        }else if(keys.size() < 2 && keys.contains("end")){
+            throw new RuntimeException(processNo+": 当前流程模板没有开始任务节点");
+        }
+        if(StringUtils.equals(list.get(0).getTaskNo(), "start")){
+            actTaskProcdef =   list.get(0);
+        }else {
+            actTaskProcdef =   list.get(1);
+        }
+        String processId = super.insert(actProcess);
+        ActProcessTask processTask = new ActProcessTask();
+        processTask.setProcessId(processId);
+        processTask.setStartTime(LocalDateTime.now());
+        processTask.setProcessfName(actProcdef.getActName());
+        processTask.setSort(actTaskProcdef.getSort());
+        processTask.setProcessfId(actProcdef.getId());
+        processTask.setTaskfId(actTaskProcdef.getId());
+        processTask.setContent("初始化流程");
+        processTask.setState(ProcessTaskStateEnum.RUN.getName());
+        processTask.setTagIds(actTaskProcdef.getTagIds());
+        processTask.setTaskNo(actTaskProcdef.getTaskNo());
+        processTask.setTaskName(actTaskProcdef.getTaskName());
+        processTask.setVoucher("true");
+        processTask.setVoucherCount(actTaskProcdef.getNextTaskIds().split(",").length);
+        String taskId = super.insert(processTask);
+        taskRecord(taskId, actTaskProcdef.getId(), "");
+        processTaskRecord(taskId, processId);
+        Object process = null;
+        try {
+            process = FlowClassLoader.flowClassLoader(clazz);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }finally {
+            if(Objects.isNull(process)){
+                throw new RuntimeException("流程开启失败");
+            }
+        }
+        FlowNotify flowNotify = new FlowNotify();
+        flowNotify.setNotifyEnum(NotifyEnum.START);
+        flowNotify.setHook(process);
+        flowNotify.setProcessId(processId);
+        this.startNotify(flowNotify);
+        return processId;
+    }
+
 
     /**
      * 审核同意
@@ -655,21 +746,79 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return true;
         }
-        try {
-            Class<?> aClass = Class.forName(hookName);
-            Method auditBefore = aClass.getMethod("auditBefore");
-
-            /***
-             *后续有基于注解通知拓展
-             */
-            if(Objects.isNull(auditBefore)){
+        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+            //基于注解通知
+            Object process = null;
+            try {
+                process = FlowClassLoader.flowClassLoader(Class.forName(hookName));
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }finally {
+                if(process == null){
+                    return true;
+                }
+            }
+            Method method = MethodLoader.getMethod(process.getClass().getMethods(), FlowAuditBefore.class);
+            if(Objects.isNull(method)){
+                method = MethodLoader.getMethod(process.getClass().getDeclaredMethods(), FlowAuditBefore.class);
+            }
+            if(Objects.isNull(method)){
                 return true;
             }
+            FlowAuditBefore annotation = method.getAnnotation(FlowAuditBefore.class);
+            String[] processTemplateIds = annotation.processTemplateIds();
+            boolean f = false;
+            if(processTemplateIds.length == 0){
+                f = true;
+            }
+            ActProcess actProcess = super.getById(processId, ActProcess.class);
+            ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+            String actName = actProcdef.getActName();
 
-            IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
-            return hook.auditBefore(new ProcessCommonModel(processId, processOperationEnum, true));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            for(String processTemplate : processTemplateIds){
+                if(f){
+                    break;
+                }
+                f = StringUtils.equals(actName, processTemplate);
+            }
+
+            if(!f){
+                return true;
+            }
+            BusParam.getInstance().setMap(new LinkedHashMap(){{
+                put(ParamKey.CONTENTKEY, new ProcessCommonModel(processId, processOperationEnum, true));
+            }});
+
+            try {
+                f = (boolean) method.invoke(process);
+                return f;
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }finally {
+                return true;
+            }
+        }else {
+
+            try {
+                Class<?> aClass = Class.forName(hookName);
+                Method auditBefore = aClass.getMethod("auditBefore");
+                if(Objects.isNull(auditBefore)){
+                    return true;
+                }
+
+                IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
+                return hook.auditBefore(new ProcessCommonModel(processId, processOperationEnum, true));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }finally {
+                return true;
+            }
         }
     }
 
@@ -679,36 +828,118 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return;
         }
-        try {
-            Class<?> aClass = Class.forName(hookName);
-            IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
 
+        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+
+            //基于注解通知
+            Object process = null;
+            try {
+                process = FlowClassLoader.flowClassLoader(Class.forName(hookName));
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            if(Objects.isNull(process)){
+                return;
+            }
+            Method method = MethodLoader.getMethod(process.getClass().getMethods(), FlowAuditAfter.class);
+            if(Objects.isNull(method)){
+                method = MethodLoader.getMethod(process.getClass().getDeclaredMethods(), FlowAuditAfter.class);
+            }
+            if(Objects.isNull(method)){
+                return;
+            }
+            FlowAuditAfter annotation = method.getAnnotation(FlowAuditAfter.class);
+            String[] processTemplateIds = annotation.processTemplateIds();
+            boolean f = false;
+            if(processTemplateIds.length == 0){
+                f = true;
+            }
+            ActProcess actProcess = super.getById(processId, ActProcess.class);
+            ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+            String actName = actProcdef.getActName();
+
+            for(String processTemplate : processTemplateIds){
+                if(f){
+                    break;
+                }
+                f = StringUtils.equals(actName, processTemplate);
+            }
+            //未匹配到结果，不通知
+            if(!f){
+                return;
+            }
             FlowNotify flowNotify = new FlowNotify();
             flowNotify.setNotifyEnum(NotifyEnum.TASKAUDITAFTER);
-            flowNotify.setHook(hook);
+            flowNotify.setHook(process);
             flowNotify.setProcessId(processId);
             flowNotify.setProcessOperationEnum(processOperationEnum);
             flowNotify.getBusiness().putAll(businessMap);
-
-            //是否异步回调
-            Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
-            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
-            //异步调用
+            //是否异步通知
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
-            }
-            //同步调用
-            else {
+            }else {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
                 Map<String, Object> business = flowNotify.getBusiness();
                 processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
-                flowNotify.getHook().auditAfter(processCommonModel);
+                BusParam.getInstance().setMap(new LinkedHashMap(){{
+                    put(ParamKey.CONTENTKEY, processCommonModel);
+                }});
+                try {
+                    method.invoke(process);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+
+        }else {
+            try {
+                Class<?> aClass = Class.forName(hookName);
+                IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
+
+                FlowNotify flowNotify = new FlowNotify();
+                flowNotify.setNotifyEnum(NotifyEnum.TASKAUDITAFTER);
+                flowNotify.setHook(hook);
+                flowNotify.setProcessId(processId);
+                flowNotify.setProcessOperationEnum(processOperationEnum);
+                flowNotify.getBusiness().putAll(businessMap);
+
+                //是否异步回调
+                Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
+                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+                //异步调用
+                if(annotationPresent){
+                    publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+                }
+                //同步调用
+                else {
+                    ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                    processCommonModel.setProcessId(flowNotify.getProcessId());
+                    processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                    Map<String, Object> business = flowNotify.getBusiness();
+                    processCommonModel.afterInit((ActProcessTask)business.get("currentNode"), String.valueOf(business.get("businessParams")));
+                    flowNotify.getHook().auditAfter(processCommonModel);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
+
+
+
+
+
+
     }
 
 
@@ -717,31 +948,112 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return;
         }
-        try {
-            Class<?> aClass = Class.forName(hookName);
-            IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
+        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+            //基于注解通知
+            Object process = null;
+            try {
+                process = FlowClassLoader.flowClassLoader(Class.forName(hookName));
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            if(Objects.isNull(process)){
+                return;
+            }
+            Method method = MethodLoader.getMethod(process.getClass().getMethods(), FlowAuditEnd.class);
+            if(Objects.isNull(method)){
+                method = MethodLoader.getMethod(process.getClass().getDeclaredMethods(), FlowAuditEnd.class);
+            }
+            if(Objects.isNull(method)){
+                return;
+            }
+            FlowAuditEnd annotation = method.getAnnotation(FlowAuditEnd.class);
+            String[] processTemplateIds = annotation.processTemplateIds();
+            boolean f = false;
+            if(processTemplateIds.length == 0){
+                f = true;
+            }
+            ActProcess actProcess = super.getById(processId, ActProcess.class);
+            ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+            String actName = actProcdef.getActName();
+
+            for(String processTemplate : processTemplateIds){
+                if(f){
+                    break;
+                }
+                f = StringUtils.equals(actName, processTemplate);
+            }
+            //未匹配到结果，不通知
+            if(!f){
+                return;
+            }
             FlowNotify flowNotify = new FlowNotify();
             flowNotify.setNotifyEnum(NotifyEnum.END);
-            flowNotify.setHook(hook);
+            flowNotify.setHook(process);
             flowNotify.setProcessId(processId);
-
-
-            //是否异步回调
-            Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
-            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+            //是否异步通知
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
             }else {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
-                flowNotify.getHook().goEndBack(processCommonModel);
+                BusParam.getInstance().setMap(new LinkedHashMap(){{
+                    put(ParamKey.CONTENTKEY, processCommonModel);
+                }});
+                try {
+                    method.invoke(process);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+
+
+        }else {
+
+            try {
+                Class<?> aClass = Class.forName(hookName);
+                IProcess hook = (IProcess)FlowBeanFactory.getInstance().getBean(aClass);
+                FlowNotify flowNotify = new FlowNotify();
+                flowNotify.setNotifyEnum(NotifyEnum.END);
+                flowNotify.setHook(hook);
+                flowNotify.setProcessId(processId);
+
+
+                //是否异步回调
+                Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
+                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+                if(annotationPresent){
+                    publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+                }else {
+                    ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                    processCommonModel.setProcessId(flowNotify.getProcessId());
+                    processCommonModel.setOperation(flowNotify.getProcessOperationEnum());
+                    flowNotify.getHook().goEndBack(processCommonModel);
+                }
+
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
         }
+
+
+
+
+
+
+
     }
 
 
@@ -759,6 +1071,56 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 ProcessCommonModel processCommonModel = new ProcessCommonModel();
                 processCommonModel.setProcessId(flowNotify.getProcessId());
                 flowNotify.getHook().start(processCommonModel);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void startNotify(FlowNotify flowNotify){
+        Object hook = flowNotify.getHook(environment.getProperty("yzm.flow.annotation", Boolean.class));
+        Method method = MethodLoader.getMethod(hook.getClass().getMethods(), FlowAuditStart.class);
+        if(Objects.isNull(method)){
+            method = MethodLoader.getMethod(hook.getClass().getDeclaredMethods(), FlowAuditStart.class);
+        }
+
+        if(Objects.isNull(hook) || Objects.isNull(method)){
+            return;
+        }
+        FlowAuditStart annotation = method.getAnnotation(FlowAuditStart.class);
+        String[] processTemplateIds = annotation.processTemplateIds();
+        boolean f = false;
+        if(processTemplateIds.length == 0){
+            f = true;
+        }
+        ActProcess actProcess = super.getById(flowNotify.getProcessId(), ActProcess.class);
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        String actName = actProcdef.getActName();
+
+        for(String processTemplate : processTemplateIds){
+            if(f){
+                break;
+            }
+            f = StringUtils.equals(actName, processTemplate);
+        }
+        //未匹配到结果，不通知
+        if(!f){
+            return;
+        }
+
+        try {
+            //是否异步回调
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
+            if(annotationPresent){
+                publisher.publishEvent(new FlowRegisterEvent(flowNotify));
+            }else {
+                ProcessCommonModel processCommonModel = new ProcessCommonModel();
+                processCommonModel.setProcessId(flowNotify.getProcessId());
+                BusParam.getInstance().setMap(new LinkedHashMap(){{
+                    put(ParamKey.CONTENTKEY, processCommonModel);
+                }});
+                method.invoke(hook);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -880,4 +1242,14 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         process.setTaskHistory(res);
         super.updateById(process);
     }
+
+
+
+
+
+
+
+
+
+
 }

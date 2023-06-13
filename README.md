@@ -8,15 +8,13 @@
 
 
 
-当前版本3.1.0
-完成主要功能：增加同步调用功能
+当前版本3.1.1
+完成主要功能：增加使用注解进行事件回调通知 分组通知
 
 
 未来计划：
 
-     1.增加使用注解进行事件回调通知 分组通知
-
-     2.图形画操作，实现良好的人机交互 使用awt开发进行配套支持
+     1.图形画操作，实现良好的人机交互 使用awt开发进行配套支持
 
 
 当前包主要功能：审批工作流程封装
@@ -51,6 +49,11 @@ yzm.flow.cacheType=redis/H2 缓存类型
 
     默认的缓存是H2，放在本地磁盘中，也可以使用redis
 
+yzm.flow.annotation=true/false 
+     
+     是否启用注解通知，如果启用注解通知，自定义的通知类可以不用实现IProcess接口类，只需要在方法上面添加 @FlowAuditAfter(审核后通知)/ @FlowAuditBefore(审核前通知)/ @FlowAuditEnd(流程审核结束通知)即可
+     方法无参，从BusParam上下文中可以取得当前流程审核所有信息     
+
 ### 文档地址
 
 语雀:  https://www.yuque.com/weifeng-1btgr/ysxsg0/roo4oe09exd6atqw
@@ -65,7 +68,7 @@ yzm.flow.cacheType=redis/H2 缓存类型
   <dependency>
        <groupId>com.sophony.flow</groupId>
        <artifactId>flow-yzm-starter</artifactId>
-       <version>3.1.0</version>
+       <version>3.1.1</version>
    </dependency>
 ```
    

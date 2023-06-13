@@ -25,6 +25,8 @@ public class FlowNotify {
 
     IProcess hook;
 
+    Object objectHook;
+
     Map<String, Object> business = new ConcurrentHashMap<>();
 
 
@@ -48,8 +50,19 @@ public class FlowNotify {
         return hook;
     }
 
+    public Object getHook(boolean env) {
+        if(env){
+            return objectHook;
+        }
+        return hook;
+    }
+
     public void setHook(IProcess hook) {
         this.hook = hook;
+    }
+
+    public void setHook(Object hook) {
+        this.objectHook = hook;
     }
 
     public ProcessOperationEnum getProcessOperationEnum() {

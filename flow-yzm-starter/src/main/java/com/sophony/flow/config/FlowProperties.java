@@ -22,6 +22,7 @@ public class FlowProperties {
     private boolean joinuser;
     private boolean rolevalid;
     private boolean enable;
+    private boolean annotation;
 
     private String sqlType;
 
@@ -80,6 +81,15 @@ public class FlowProperties {
         return worker.cacheType;
     }
 
+
+    public boolean isAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(boolean annotation) {
+        this.annotation = annotation;
+    }
+
     public static class Worker{
 
 
@@ -98,6 +108,12 @@ public class FlowProperties {
          * 是否开启流程
          */
         private boolean enable = true;
+
+
+        /**
+         * 是否开启注解
+         */
+        private boolean annotation = false;
 
         private String sqlType;
 
@@ -160,6 +176,15 @@ public class FlowProperties {
 
         public void setCacheType(String cacheType) {
             this.cacheType = cacheType;
+        }
+
+
+        public void setAnnotation(boolean annotation) {
+            this.annotation = annotation;
+        }
+
+        public boolean getAnnotation() {
+            return annotation;
         }
     }
 
