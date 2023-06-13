@@ -19,6 +19,6 @@ public @interface FlowAuditBefore {
      * @return
      */
 
-    String[] processTemplateIds();
+    String[] processTemplateIds() default {};
 
 }

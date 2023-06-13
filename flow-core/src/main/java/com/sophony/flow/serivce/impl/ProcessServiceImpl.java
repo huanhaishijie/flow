@@ -6,6 +6,7 @@ import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.api.respDto.ActProcessTaskRespDto;
 import com.sophony.flow.api.respDto.ProcessRespDto;
+import com.sophony.flow.common.AnnotationOpenUtils;
 import com.sophony.flow.common.FlowNotify;
 import com.sophony.flow.common.MethodLoader;
 import com.sophony.flow.common.constant.ParamKey;
@@ -31,14 +32,12 @@ import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
@@ -64,7 +63,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     ApplicationEventPublisher publisher;
 
     @Resource
-    Environment environment;
+    AnnotationOpenUtils annotationOpenUtils;
 
 
 
@@ -138,6 +137,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String start(String processNo, Class<?> clazz) {
         ActProcdef actProcdef = new ActProcdef();
         String sql = "select * from "+ actProcdef.getTableName() + " where act_no = '"+processNo+"'  and is_deleted = 0 and state = '1' limit 1";
@@ -746,7 +746,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return true;
         }
-        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+        if(annotationOpenUtils.isOpen()){
             //基于注解通知
             Object process = null;
             try {
@@ -777,13 +777,13 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
             ActProcess actProcess = super.getById(processId, ActProcess.class);
             ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-            String actName = actProcdef.getActName();
+            String actNo = actProcdef.getActNo();
 
             for(String processTemplate : processTemplateIds){
                 if(f){
                     break;
                 }
-                f = StringUtils.equals(actName, processTemplate);
+                f = StringUtils.equals(actNo, processTemplate);
             }
 
             if(!f){
@@ -829,7 +829,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             return;
         }
 
-        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+        if(annotationOpenUtils.isOpen()){
 
             //基于注解通知
             Object process = null;
@@ -860,13 +860,13 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
             ActProcess actProcess = super.getById(processId, ActProcess.class);
             ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-            String actName = actProcdef.getActName();
+            String actNo = actProcdef.getActNo();
 
             for(String processTemplate : processTemplateIds){
                 if(f){
                     break;
                 }
-                f = StringUtils.equals(actName, processTemplate);
+                f = StringUtils.equals(actNo, processTemplate);
             }
             //未匹配到结果，不通知
             if(!f){
@@ -948,7 +948,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(hookName)){
             return;
         }
-        if(environment.getProperty("yzm.flow.annotation", Boolean.class)){
+        if(annotationOpenUtils.isOpen()){
             //基于注解通知
             Object process = null;
             try {
@@ -978,13 +978,13 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
             ActProcess actProcess = super.getById(processId, ActProcess.class);
             ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-            String actName = actProcdef.getActName();
+            String actNo = actProcdef.getActNo();
 
             for(String processTemplate : processTemplateIds){
                 if(f){
                     break;
                 }
-                f = StringUtils.equals(actName, processTemplate);
+                f = StringUtils.equals(actNo, processTemplate);
             }
             //未匹配到结果，不通知
             if(!f){
@@ -1079,7 +1079,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
 
     private void startNotify(FlowNotify flowNotify){
-        Object hook = flowNotify.getHook(environment.getProperty("yzm.flow.annotation", Boolean.class));
+        Object hook = flowNotify.getHook(annotationOpenUtils.isOpen());
+        if(Objects.isNull(hook)){
+            return;
+        }
         Method method = MethodLoader.getMethod(hook.getClass().getMethods(), FlowAuditStart.class);
         if(Objects.isNull(method)){
             method = MethodLoader.getMethod(hook.getClass().getDeclaredMethods(), FlowAuditStart.class);
@@ -1096,13 +1099,13 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }
         ActProcess actProcess = super.getById(flowNotify.getProcessId(), ActProcess.class);
         ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
-        String actName = actProcdef.getActName();
+        String actNo = actProcdef.getActNo();
 
         for(String processTemplate : processTemplateIds){
             if(f){
                 break;
             }
-            f = StringUtils.equals(actName, processTemplate);
+            f = StringUtils.equals(actNo, processTemplate);
         }
         //未匹配到结果，不通知
         if(!f){

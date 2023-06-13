@@ -1,5 +1,6 @@
 package com.sophony.flow.core;
 
+import com.sophony.flow.common.AnnotationOpenUtils;
 import com.sophony.flow.common.FlowNotify;
 import com.sophony.flow.common.MethodLoader;
 import com.sophony.flow.common.constant.ParamKey;
@@ -10,7 +11,6 @@ import com.sophony.flow.commons.annotation.FlowAuditStart;
 import com.sophony.flow.event.FlowRegisterEvent;
 import com.sophony.flow.mapping.ActProcessTask;
 import com.sophony.flow.model.ProcessCommonModel;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
@@ -36,8 +36,9 @@ import java.util.Objects;
 @Service
 public class NotifyDisposeService {
 
+
     @Resource
-    Environment environment;
+    AnnotationOpenUtils annotationOpenUtils;
 
 
 
@@ -45,7 +46,7 @@ public class NotifyDisposeService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, condition = "#flowRegisterEvent.getState().toString() == 'SUCCEED'", classes = FlowRegisterEvent.class)
     public void notifyDispose(FlowRegisterEvent flowRegisterEvent){
         FlowNotify flowNotify = flowRegisterEvent.getFlowNotify();
-        if(Objects.isNull(flowNotify.getHook())){
+        if(Objects.isNull(flowNotify.getHook(annotationOpenUtils.isOpen()))){
             return;
         }
         ProcessCommonModel processCommonModel = new ProcessCommonModel();
@@ -54,7 +55,7 @@ public class NotifyDisposeService {
         BusParam.getInstance().setMap(new LinkedHashMap(){{
             put(ParamKey.CONTENTKEY, processCommonModel);
         }});
-        Boolean f = environment.getProperty("yzm.flow.annotation", Boolean.class);
+        Boolean f = annotationOpenUtils.isOpen();
         Object hook = null;
         if(f){
             hook = flowNotify.getHook(true);

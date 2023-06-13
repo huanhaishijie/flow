@@ -18,7 +18,7 @@ public @interface FlowAuditAfter {
      * 匹配模板， 不填默认全匹配
      * @return
      */
-    String[] processTemplateIds();
+    String[] processTemplateIds() default {};
 
 
 }
