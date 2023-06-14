@@ -81,7 +81,7 @@ public class ParseSql {
 
         String sql = "select ";
         for(int i = 0; i < columns1.length; i ++){
-            sql += "\"" + columns1[i] + "\" \""+ cols[i] +"\",";
+            sql +=  columns1[i] + " "+ cols[i] +",";
         }
         if(sql.endsWith(",")){
             sql = sql.substring(0, sql.length() -1);
@@ -107,7 +107,7 @@ public class ParseSql {
                 continue;
             }
             args.add(value);
-            columnsStr += "\"" + column + "\",";
+            columnsStr +=  column + ",";
             values += "?,";
         }
         if(columnsStr.endsWith(",")){
@@ -136,7 +136,7 @@ public class ParseSql {
                 continue;
             }
             args.add(value);
-            sql += "\"" +column +"\"" + " = ?,";
+            sql += column +"" + " = ?,";
         }
         if(sql.endsWith(",")){
             sql = sql.substring(0, sql.length() -1);

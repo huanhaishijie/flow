@@ -487,7 +487,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 }
             });
             scopeIdsSet.forEach(it -> {
-                String sql = " update "+ backNode.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
+                String sql = " update "+ backNode.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', content = 'task:"+task.getId()
                         +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
                 jdbcTemplate.update(sql);
             });
@@ -671,7 +671,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             });
             ActProcessTask finalProcessTask = processTask;
             scopeIdsSet.forEach(it -> {
-                String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
+                String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', content = 'task:"+task.getId()
                         +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
                 jdbcTemplate.update(sql);
             });
@@ -1201,7 +1201,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(idsStr, ActTaskProcdef.class);
 
-        String sql1 = "update " + new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'   where is_deleted = 0 " +
+        String sql1 = "update " + new ActProcessTask().getTableName() + " set content = ? , state = ?, voucher = 'false'   where is_deleted = 0 " +
                 " and state = '"+ProcessTaskStateEnum.RUN.getName()+"' and voucher = 'true'" +
                 " and taskf_id in " + super.conditionByIn(idsStr, String.class);
         jdbcTemplate.update(sql1, message, ProcessTaskStateEnum.INTERRUPTED.getName());
@@ -1224,7 +1224,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
      */
     private void interrupted(Collection<String> ids, String message, String voucher){
         ids.forEach(it -> {
-            String sql = "update " +new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'  where is_deleted = 0 " +
+            String sql = "update " +new ActProcessTask().getTableName() + " set content = ? , state = ?, voucher = 'false'  where is_deleted = 0 " +
                     " and voucher = 'true' and  state = '"+ProcessTaskStateEnum.RUN.getName()+"' and self_history like '%"+it+"%' ";
             jdbcTemplate.update(sql, message, ProcessTaskStateEnum.INTERRUPTED.getName());
         });
