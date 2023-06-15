@@ -72,8 +72,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     @Transactional(rollbackFor = Exception.class)
     public String start(String processNo, IProcess process) {
         ActProcdef actProcdef = new ActProcdef();
-        String sql = "select * from "+ actProcdef.getTableName() + " where act_no = '"+processNo+"'  and is_deleted = 0 and state = '1' limit 1";
-        actProcdef = super.selectOne(sql, ActProcdef.class, new Object[]{});
+        String sql = "select * from "+ actProcdef.getTableName() + " where act_no = ?  and is_deleted = 0 and state = '1' limit 1";
+        actProcdef = super.selectOne(sql, ActProcdef.class, new Object[]{ processNo });
         if(Objects.isNull(actProcdef)){
             throw new RuntimeException(processNo+": 当前流程模板编号不可用");
         }
@@ -140,8 +140,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     @Transactional(rollbackFor = Exception.class)
     public String start(String processNo, Class<?> clazz) {
         ActProcdef actProcdef = new ActProcdef();
-        String sql = "select * from "+ actProcdef.getTableName() + " where act_no = '"+processNo+"'  and is_deleted = 0 and state = '1' limit 1";
-        actProcdef = super.selectOne(sql, ActProcdef.class, new Object[]{});
+        String sql = "select * from "+ actProcdef.getTableName() + " where act_no = ?  and is_deleted = 0 and state = '1' limit 1";
+        actProcdef = super.selectOne(sql, ActProcdef.class, new Object[]{ processNo });
         if(Objects.isNull(actProcdef)){
             throw new RuntimeException(processNo+": 当前流程模板编号不可用");
         }

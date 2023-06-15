@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -68,8 +69,10 @@ public class ExpandService implements DataService {
             eo.setUpdateUser(currentUser.getUserName());
             eo.setUpdateTime(new Date());
         }
-        String sql = eo.getUpdateSql() + " where id = '"+ eo.getId() + "'";
-        jdbcTemplate.update(sql, eo.getArgs());
+        String sql = eo.getUpdateSql() + " where id = ?";
+        List<Object> objects = Arrays.asList(eo.getArgs());
+        objects.add(eo.getId());
+        jdbcTemplate.update(sql, objects.toArray());
     }
 
     @Override
@@ -102,7 +105,7 @@ public class ExpandService implements DataService {
         BaseMappingEO baseMappingEO = (BaseMappingEO)aClass.newInstance();
         String querySql = baseMappingEO.getQuerySql();
         querySql+= " where is_deleted = 0 and id in " + conditionByIn(nextTaskIds, String.class);
-        return list(querySql, aClass);
+        return list(querySql, aClass, nextTaskIds.split(","));
     }
 
     @Override

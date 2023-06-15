@@ -62,9 +62,9 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
             if(!CollectionUtils.isEmpty(reqDto.getPreTaskIds()) && reqDto.getPreTaskIds().contains(reqDto.getId())){
                     return ResultDTO.failed("所选上一级节点不能包含自己");
             }
-            String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
+            String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like concat('%', ?, '%') ";
             try {
-                List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class);
+                List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class, new Object[]{actTaskProcdef.getId()});
                 parents.forEach(it -> {
                     ActTaskProcdef act = new ActTaskProcdef();
                     act.setId(it.getId());
@@ -128,9 +128,9 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
     public ResultDTO delete(String id) {
         ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
         actTaskProcdef.setId(id);
-        String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like '%"+actTaskProcdef.getId()+"%' ";
+        String parentSql =  actTaskProcdef.getQuerySql() + " where is_deleted = 0 and next_task_ids like  concat('%', ?, '%')";
         try {
-            List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class);
+            List<ActTaskProcdef> parents = super.list(parentSql, ActTaskProcdef.class, new Object[]{actTaskProcdef.getId()});
             parents.forEach(it -> {
                 ActTaskProcdef act = new ActTaskProcdef();
                 act.setId(it.getId());
@@ -178,7 +178,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
 
     private List<ActTaskProcdefRespDto> getActTaskProcdefRespDtoByIds(String ids){
         String sql = "select id, task_name from act_task_procdef where is_deleted on id in " + conditionByIn(ids, String.class) ;
-        List<ActTaskProcdef> list = super.list(sql, ActTaskProcdef.class);
+        List<ActTaskProcdef> list = super.list(sql, ActTaskProcdef.class, ids.split(","));
         List<ActTaskProcdefRespDto> res = list.stream().map(it -> (ActTaskProcdefRespDto) it.copyProperties(ActTaskProcdefRespDto.class)).collect(Collectors.toList());
         return res;
     }

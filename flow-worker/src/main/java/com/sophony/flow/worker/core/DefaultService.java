@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -47,15 +48,17 @@ public class DefaultService implements DataService {
     public void updateById(BaseMappingEO eo) {
         eo.setUpdateTime(new Date());
         String updateSql = eo.getUpdateSql();
-        updateSql += " where id = '"+ eo.getId()+"'";
-        jdbcTemplate.update(updateSql, new ArgumentPreparedStatementSetter(eo.getArgs()));
+        updateSql += " where id = ?";
+        List<Object> objects = Arrays.asList(eo.getArgs());
+        objects.add(eo.getId());
+        jdbcTemplate.update(updateSql, new ArgumentPreparedStatementSetter(objects.toArray()));
     }
 
     @Override
     public void deleteById(BaseMappingEO eo) {
         if(StringUtils.isNotBlank(eo.getId())){
-            String sql = " delete from "+ eo.getTableName() +" where id = '"+eo.getId()+"'";
-            jdbcTemplate.update(sql);
+            String sql = " delete from "+ eo.getTableName() +" where id = ?";
+            jdbcTemplate.update(sql, eo.getId());
         }
 
     }
@@ -113,7 +116,7 @@ public class DefaultService implements DataService {
         BaseMappingEO baseMappingEO = (BaseMappingEO)aClass.newInstance();
         String querySql = baseMappingEO.getQuerySql();
         querySql+= " where is_deleted = 0 and id in " + conditionByIn(nextTaskIds, String.class);
-        return list(querySql, aClass);
+        return list(querySql, aClass, nextTaskIds.split(","));
     }
 
 
