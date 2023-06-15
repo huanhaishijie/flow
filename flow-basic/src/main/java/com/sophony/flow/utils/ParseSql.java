@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @date 2023/3/7 13:42
  */
 public class ParseSql {
-    private BaseMappingEO baseMappingEO;
+    protected BaseMappingEO baseMappingEO;
 
     private String[] columns;
 
