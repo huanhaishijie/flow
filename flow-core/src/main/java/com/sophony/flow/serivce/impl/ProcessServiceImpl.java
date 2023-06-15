@@ -288,7 +288,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             }
             String voucherTemp = super.getById(taskNode.getId(), ActProcessTask.class).getVoucher();
             String preTaskSql = task.getQuerySql() + " where is_deleted = 0 and state = 'FINISH' and voucher = 'true' and  taskf_id in " + super.conditionByIn(preTaskIds, String.class) + " order by id ";
-            List<ActProcessTask> list = super.list(preTaskSql, ActProcessTask.class);
+            List<ActProcessTask> list = super.list(preTaskSql, ActProcessTask.class, preTaskIds.split(","));
             Set<String> fids = list.stream().map(item -> item.getTaskfId()).collect(Collectors.toSet());
             Map<String, Boolean> res = new LinkedHashMap<>();
             for (String id : preTaskIds.split(",")) {
@@ -354,7 +354,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             StringBuilder pStr = new StringBuilder();
             if(preTaskIds.contains(",") && !StringUtils.equals(it.getCond(), "or")){
                 String sql = actProcessTask.getQuerySql() + " where is_deleted = 0 and voucher = 'true' and taskf_id in " + super.conditionByIn(preTaskIds, String.class);
-                List<ActProcessTask> list = super.list(sql, ActProcessTask.class);
+                List<ActProcessTask> list = super.list(sql, ActProcessTask.class, preTaskIds.split(","));
                 String ids = list.stream().map(i -> {
                     pStr.append(i.getSelfHistory().substring(i.getSelfHistory().lastIndexOf(",")+1)+"|");
                     return i.getId();
@@ -381,6 +381,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
         //审核后回调
         afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
+        ActProcess runProcess = new ActProcess();
+        runProcess.setId(processId);
+        runProcess.setState(ProcessStateEnum.RUN.getName());
+        super.updateById(runProcess);
         return ResultDTO.success("成功");
     }
 
@@ -709,7 +713,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         ActProcess actProcess = super.getById(processId, ActProcess.class);
         ProcessRespDto processRespDto = (ProcessRespDto)actProcess.copyProperties(ProcessRespDto.class);
         Optional.ofNullable(actProcess.getState()).ifPresent(it -> processRespDto.setState(ProcessStateEnum.getByName(it).getDescription()));
-        return ResultDTO.success(actProcess);
+        return ResultDTO.success(processRespDto);
     }
 
 
@@ -800,9 +804,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
-            }finally {
-                return true;
             }
+
         }else {
 
             try {
@@ -816,8 +819,6 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 return hook.auditBefore(new ProcessCommonModel(processId, processOperationEnum, true));
             } catch (Exception e) {
                 throw new RuntimeException(e);
-            }finally {
-                return true;
             }
         }
     }
@@ -1204,7 +1205,12 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         String sql1 = "update " + new ActProcessTask().getTableName() + " set content = ? , state = ?, voucher = 'false'   where is_deleted = 0 " +
                 " and state = '"+ProcessTaskStateEnum.RUN.getName()+"' and voucher = 'true'" +
                 " and taskf_id in " + super.conditionByIn(idsStr, String.class);
-        jdbcTemplate.update(sql1, message, ProcessTaskStateEnum.INTERRUPTED.getName());
+        List<Object> params = new ArrayList<>();
+        params.add(message);
+        params.add(ProcessTaskStateEnum.INTERRUPTED.getName());
+        params.addAll(Arrays.asList(idsStr.split(",")));
+        jdbcTemplate.update(sql1, params.toArray());
+
 
 //        Set<String> collect = actTaskProcdefs.stream().filter(it -> !StringUtils.isEmpty(it.getTagIds())).map(it -> it.getTagIds()).collect(Collectors.toSet());
 //        if(CollectionUtils.isEmpty(collect)){
@@ -1258,7 +1264,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(StringUtils.isEmpty(process.getTaskHistory())){
             res =  taskId;
         }else {
-            res += ","+ taskId;
+            res += process.getTaskHistory() + ","+ taskId;
         }
         process = new ActProcess();
         process.setId(processId);

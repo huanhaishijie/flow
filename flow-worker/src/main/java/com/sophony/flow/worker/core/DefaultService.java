@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -49,7 +50,9 @@ public class DefaultService implements DataService {
         eo.setUpdateTime(new Date());
         String updateSql = eo.getUpdateSql();
         updateSql += " where id = ?";
-        List<Object> objects = Arrays.asList(eo.getArgs());
+        List<Object> objects = new ArrayList<Object>(){{
+            addAll(Arrays.asList(eo.getArgs()));
+        }};
         objects.add(eo.getId());
         jdbcTemplate.update(updateSql, new ArgumentPreparedStatementSetter(objects.toArray()));
     }

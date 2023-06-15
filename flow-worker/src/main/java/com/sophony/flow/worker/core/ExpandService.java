@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * ExpandService
@@ -70,7 +67,9 @@ public class ExpandService implements DataService {
             eo.setUpdateTime(new Date());
         }
         String sql = eo.getUpdateSql() + " where id = ?";
-        List<Object> objects = Arrays.asList(eo.getArgs());
+        List<Object> objects = new ArrayList<Object>(){{
+            addAll(Arrays.asList(eo.getArgs()));
+        }};
         objects.add(eo.getId());
         jdbcTemplate.update(sql, objects.toArray());
     }

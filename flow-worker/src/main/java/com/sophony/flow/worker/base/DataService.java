@@ -47,8 +47,16 @@ public interface DataService<T, R extends BaseMappingEO> {
         if(Objects.equals(clazz, Integer.class) || Objects.equals(clazz, Long.class)){
             return " ("+ids+") ";
         }
-        return " ('" + Arrays.asList(ids.split(",")).stream().collect(Collectors.joining("','")) +"') ";
 
+        if(ids.trim().split(",").length == 0){
+            return "";
+        }
+        String prefix = " (";
+        for(String param : ids.split(",")){
+            prefix +="?,";
+        }
+        String sqlContent = prefix.substring(0, prefix.length() -1 ) +") ";
+        return sqlContent;
     }
 
     <T extends BaseMappingEO> T selectOne(String sql, Class<T> tClass, Object[] args);
