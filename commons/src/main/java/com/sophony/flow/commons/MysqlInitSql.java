@@ -37,7 +37,7 @@ public class MysqlInitSql {
                     "  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',\n" +
                     "  `create_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '创建人',\n" +
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
-                    "  `is_deleted` smallint(0) NULL DEFAULT NULL COMMENT '是否删除 1是 0 否',\n" +
+                    "  `is_deleted` smallint(0) NULL DEFAULT '0' COMMENT '是否删除 1是 0 否',\n" +
                     "  PRIMARY KEY (`id`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '流程定义;' ROW_FORMAT = Dynamic;\n");
 
@@ -48,7 +48,7 @@ public class MysqlInitSql {
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
                     "  `create_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '创建人',\n" +
                     "  `update_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '更新人',\n" +
-                    "  `is_deleted` smallint(0) NULL DEFAULT NULL COMMENT '是否删除 1是 0 否',\n" +
+                    "  `is_deleted` smallint(0) NULL DEFAULT '0' COMMENT '是否删除 1是 0 否',\n" +
                     "  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',\n" +
                     "  `act_id` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '流程编号',\n" +
                     "  `task_no` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '目前任务',\n" +
@@ -72,7 +72,7 @@ public class MysqlInitSql {
                     "  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',\n" +
                     "  `create_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '创建人',\n" +
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
-                    "  `is_deleted` smallint(0) NULL DEFAULT NULL COMMENT '是否删除 1是 0 否',\n" +
+                    "  `is_deleted` smallint(0) NULL DEFAULT '0' COMMENT '是否删除 1是 0 否',\n" +
                     "  PRIMARY KEY (`id`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;\n");
 
@@ -95,7 +95,7 @@ public class MysqlInitSql {
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
                     "  `create_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '创建人',\n" +
                     "  `update_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '更新人',\n" +
-                    "  `is_deleted` smallint(0) NULL DEFAULT NULL COMMENT '是否删除 1是 0 否',\n" +
+                    "  `is_deleted` smallint(0) NULL DEFAULT '0' COMMENT '是否删除 1是 0 否',\n" +
                     "  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',\n" +
                     "  `taskf_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '流程定义的id',\n" +
                     "  `processf_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '流程模板id',\n" +
@@ -126,7 +126,7 @@ public class MysqlInitSql {
                     "  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',\n" +
                     "  `create_user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '创建人',\n" +
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
-                    "  `is_deleted` smallint(0) NULL DEFAULT NULL COMMENT '是否删除 1是 0 否',\n" +
+                    "  `is_deleted` smallint(0) NULL DEFAULT '0' COMMENT '是否删除 1是 0 否',\n" +
                     "  `tag_ids` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '关联标签ids',\n" +
                     "  `pre_task_ids` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '上一级任务节点',\n" +
                     "  `cond` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'and / or 对于多父节点有效， 默认 and',\n" +

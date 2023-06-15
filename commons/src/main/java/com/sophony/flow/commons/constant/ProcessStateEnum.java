@@ -41,8 +41,8 @@ public enum ProcessStateEnum {
         this.description = description;
     }
 
-    public static ProcessTaskStateEnum getByName(String name){
-        return Arrays.asList(ProcessTaskStateEnum.values()).stream().filter(it -> Objects.equals(name, it.getName())).findFirst().get();
+    public static ProcessStateEnum getByName(String name){
+        return Arrays.asList(ProcessStateEnum.values()).stream().filter(it -> Objects.equals(name, it.getName())).findFirst().get();
     }
 
 

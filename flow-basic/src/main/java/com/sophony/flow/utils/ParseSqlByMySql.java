@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
  * @date 2023/3/18 13:24
  */
 public class ParseSqlByMySql extends ParseSql{
-    private BaseMappingEO baseMappingEO;
 
     private String[] columns;
 
