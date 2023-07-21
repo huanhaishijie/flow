@@ -1,0 +1,42 @@
+{
+ "groups": [
+   {
+     "name": "yzm.flow",
+     "type": "com.sophony.flow.config.FlowProperties",
+     "sourceType": "com.sophony.flow.config.FlowProperties"
+   }
+ ],
+  "properties": [
+    {
+      "name": "joinuser",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.sophony.flow.config.FlowProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "rolevalid",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.sophony.flow.config.FlowProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "openCache",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.sophony.flow.config.FlowProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "cacheType",
+      "type": "java.lang.String",
+      "sourceType": "com.sophony.flow.config.FlowProperties",
+      "defaultValue": "H2"
+    },
+    {
+      "name": "annotation",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.sophony.flow.config.FlowProperties",
+      "defaultValue": true
+    }
+  ]
+
+}
