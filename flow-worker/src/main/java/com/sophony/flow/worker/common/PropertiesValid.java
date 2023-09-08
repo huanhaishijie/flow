@@ -1,8 +1,6 @@
 package com.sophony.flow.worker.common;
 
 import com.sophony.flow.commons.BusParam;
-import com.sophony.flow.commons.MysqlInitSql;
-import com.sophony.flow.commons.PostgresqlInitSql;
 import com.sophony.flow.worker.base.DataService;
 import com.sophony.flow.worker.base.FlowUserInfo;
 import com.sophony.flow.worker.base.FlowValidService;
@@ -75,6 +73,17 @@ public class PropertiesValid {
         Map<String, Object> setting = new ConcurrentHashMap<>();
         if(StringUtils.isEmpty(flowWorkConfig.getSqlType())){
             DataSource dataSource = FlowBeanFactory.getInstance().getBean(JdbcTemplate.class).getDataSource();
+            try {
+                Class<?> clazz2 = ClassLoader.getSystemClassLoader().loadClass("org.apache.shardingsphere.driver.jdbc.core.datasource.ShardingSphereDataSource");
+            }catch (Exception e){
+                log.info("当前项目不存在分片数据源引用");
+            }
+            try {
+                Class<?> clazz = ClassLoader.getSystemClassLoader().loadClass("com.yzm.project.common.DynamicDataSource");
+            }catch (Exception e){
+                log.info("当前项目不存在动态数据源引用");
+            }
+
             try {
                 Method getDriverClassName = dataSource.getClass().getMethod("getDriverClassName");
                 String res = String.valueOf(getDriverClassName.invoke(dataSource));

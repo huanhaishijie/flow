@@ -58,6 +58,12 @@
             <artifactId>spring-data-redis</artifactId>
             <version>${spring.redis.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.yzm.project</groupId>-->
+<!--            <artifactId>dbstartter</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>
