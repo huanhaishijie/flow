@@ -1,7 +1,10 @@
 package com.sophony.flow.common;
 
+import org.springframework.core.annotation.AnnotationUtils;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * MethodLoader
@@ -20,7 +23,7 @@ public class MethodLoader {
         }
         for(Method m: methods){
             m.setAccessible(true);
-            boolean flag = m.isAnnotationPresent(clazz);
+            boolean flag = m.isAnnotationPresent(clazz) || Objects.nonNull(AnnotationUtils.findAnnotation(m, clazz ));
             if(flag){
                 return m;
             }
