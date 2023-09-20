@@ -32,6 +32,7 @@ import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -881,7 +882,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.getBusiness().putAll(businessMap);
             flowNotify.setActNo(actNo);
             //是否异步通知
-            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class) || Objects.nonNull(AnnotationUtils.findAnnotation(method, FlowAsSync.class ));
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
             }else {
@@ -921,7 +922,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
                 //是否异步回调
                 Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
-                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class)  || Objects.nonNull(AnnotationUtils.findAnnotation(auditAfter, FlowAsSync.class ));
                 //异步调用
                 if(annotationPresent){
                     publisher.publishEvent(new FlowRegisterEvent(flowNotify));
@@ -1005,7 +1006,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             flowNotify.setProcessId(processId);
             flowNotify.setActNo(actNo);
             //是否异步通知
-            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class) || Objects.nonNull(AnnotationUtils.findAnnotation(method, FlowAsSync.class ));
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
             }else {
@@ -1042,7 +1043,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 flowNotify.setActNo(actNo);
                 //是否异步回调
                 Method auditAfter = hook.getClass().getMethod("auditAfter", IProcess.class);
-                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+                boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class) || Objects.nonNull(AnnotationUtils.findAnnotation(auditAfter, FlowAsSync.class ));
                 if(annotationPresent){
                     publisher.publishEvent(new FlowRegisterEvent(flowNotify));
                 }else {
@@ -1080,7 +1081,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         try {
             //是否异步回调
             Method auditAfter = hook.getClass().getMethod("start", IProcess.class);
-            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class);
+            boolean annotationPresent = auditAfter.isAnnotationPresent(FlowAsSync.class) || Objects.nonNull(AnnotationUtils.findAnnotation(auditAfter, FlowAsSync.class ));
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
             }else {
@@ -1133,7 +1134,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         try {
             //是否异步回调
-            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class);
+            boolean annotationPresent = method.isAnnotationPresent(FlowAsSync.class) || Objects.nonNull(AnnotationUtils.findAnnotation(method, FlowAsSync.class ));
             if(annotationPresent){
                 publisher.publishEvent(new FlowRegisterEvent(flowNotify));
             }else {
