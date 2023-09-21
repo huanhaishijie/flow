@@ -7,6 +7,7 @@ import com.sophony.flow.mapping.ActProcess;
 import com.sophony.flow.mapping.ActProcessTask;
 import com.sophony.flow.serivce.impl.ProcessServiceImpl;
 import com.sophony.flow.worker.common.FlowBeanFactory;
+import com.sophony.flow.worker.core.DefaultFlowValidService;
 import com.sophony.flow.worker.modle.ProcessModel;
 import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.TaskPermission;
@@ -96,7 +97,13 @@ public class ProcessCommonModel extends ProcessModel {
             pre.setTaskNo(task.getTaskNo());
             list.add(pre);
         });
-        valid = flowBeanFactory.getFlowValidService().valid(list);
+        try {
+            valid = flowBeanFactory.getFlowValidService().valid(list);
+        }catch (Exception e){
+            //TODO 1.支持自动审批流，多节点会出现bug
+            valid = flowBeanFactory.getBean(DefaultFlowValidService.class).valid(list);
+        }
+
         if(CollectionUtils.isEmpty(valid.getTaskNodeList())){
             return;
         }

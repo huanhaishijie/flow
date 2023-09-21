@@ -11,7 +11,8 @@ package com.sophony.flow.commons.constant;
 public enum ProcessOperationEnum {
     APPROVE("APPROVE", "批准"),
     REFUSE("REFUSE", "拒绝"),
-    WITHDRAW("WITHDRAW", "撤回");
+    WITHDRAW("WITHDRAW", "撤回"),
+    FORCEDEND("FORCEDEND", "强制结束");
 
     private String name;
 

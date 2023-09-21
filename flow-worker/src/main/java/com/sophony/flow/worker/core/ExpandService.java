@@ -6,7 +6,6 @@ import com.sophony.flow.worker.base.DataService;
 import com.sophony.flow.worker.base.FlowUserInfo;
 import com.sophony.flow.worker.modle.User;
 import lombok.SneakyThrows;
-import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;

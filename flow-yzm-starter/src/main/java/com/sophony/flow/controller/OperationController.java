@@ -1,6 +1,7 @@
 package com.sophony.flow.controller;
 
 import com.sophony.flow.api.reqDto.ApproveReqDto;
+import com.sophony.flow.api.reqDto.ForcedEndReqDto;
 import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.commons.ResultDTO;
@@ -50,6 +51,12 @@ public class OperationController {
     @ApiOperation(value = "撤回", notes = "withdraw")
     public ResultDTO withdrawProcess(@RequestBody @Valid WithdrawReqDto reqDto) {
         return processService.withdraw(reqDto);
+    }
+
+    @PostMapping("/forcedEnd")
+    @ApiOperation(value = "强制结束", notes = "forcedEnd")
+    public ResultDTO forcedEnd(@RequestBody @Valid ForcedEndReqDto reqDto) {
+        return processService.forcedEnd(reqDto);
     }
 
 

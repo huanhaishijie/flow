@@ -1,6 +1,7 @@
 package com.sophony.flow.serivce;
 
 import com.sophony.flow.api.reqDto.ApproveReqDto;
+import com.sophony.flow.api.reqDto.ForcedEndReqDto;
 import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.commons.ResultDTO;
@@ -40,6 +41,14 @@ public interface IProcessService {
      */
     ResultDTO approve(ApproveReqDto approveReqDto);
 
+
+    /**
+     * 自动审核同意（不建议使用，多节点有bug）
+     * @param approveReqDto
+     * @return
+     */
+    ResultDTO autoApprove(ApproveReqDto approveReqDto);
+
     /**
      * 审核拒绝
      * @param reqDto
@@ -67,4 +76,12 @@ public interface IProcessService {
      * @return
      */
     ResultDTO getTaskHistory(String processId);
+
+
+    /**
+     * 强制结束流程
+     * @param reqDto
+     * @return
+     */
+    ResultDTO forcedEnd(ForcedEndReqDto reqDto);
 }

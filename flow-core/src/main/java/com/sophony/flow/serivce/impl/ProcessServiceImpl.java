@@ -2,6 +2,7 @@ package com.sophony.flow.serivce.impl;
 
 import com.sophony.flow.annotation.FLowLock;
 import com.sophony.flow.api.reqDto.ApproveReqDto;
+import com.sophony.flow.api.reqDto.ForcedEndReqDto;
 import com.sophony.flow.api.reqDto.RefuseReqDto;
 import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.api.respDto.ActProcessTaskRespDto;
@@ -389,6 +390,172 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         return ResultDTO.success("成功");
     }
 
+    @Override
+    @FLowLock
+    @Transactional(rollbackFor = Exception.class)
+    public ResultDTO autoApprove(ApproveReqDto approveReqDto) {
+        String processId = approveReqDto.getProcessId();
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        if(Objects.isNull(actProcess)){
+            return ResultDTO.failed("失败");
+        }
+        if(StringUtils.equals(actProcess.getState(), ProcessStateEnum.END.getName())){
+            return  ResultDTO.failed("流程已经结束,无法审核");
+        }
+
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+
+        ProcessCommonModel processCommonModel = new ProcessCommonModel(processId, approveReqDto.getOperation(), true);
+        boolean audit = processCommonModel.isAudit();
+//        if(!audit){
+//            return ResultDTO.failed("没有审核权限");
+//        }
+        boolean b = beforeNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
+        if(!b){
+            return ResultDTO.failed("业务条件校验不通过，审核终止");
+        }
+        TaskNode taskNode = processCommonModel.getTaskNode();
+        ActProcessTask task = new ActProcessTask();
+        task.setId(taskNode.getId());
+        task.setContent(approveReqDto.getContent());
+        task.setEndTime(LocalDateTime.now());
+        task.setState(ProcessTaskStateEnum.FINISH.getName());
+        User currentUser = getCurrentUser();
+        if(Objects.nonNull(currentUser)){
+            task.setAuditUser(currentUser.getUserName());
+        }
+        Optional.ofNullable(processCommonModel.getT()).ifPresent(it ->
+                task.setExpansionData(new LinkedHashMap(){{
+                    put("key1", it);
+                }})
+        );
+        super.updateById(task);
+        //校验下一层节点
+        ActTaskProcdef actTaskProcdef = super.getById(taskNode.getTaskTemplateId(), ActTaskProcdef.class);
+        String nextTaskIds = actTaskProcdef.getNextTaskIds();
+        List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(nextTaskIds, ActTaskProcdef.class);
+        if(CollectionUtils.isEmpty(actTaskProcdefs)){
+            return ResultDTO.failed(processId+": 没有完整流程，当前流程不可继续");
+        }
+
+        if(actTaskProcdefs.size() > 1){
+            Set<String> collect = actTaskProcdefs.stream().map(it -> it.getTaskNo()).collect(Collectors.toSet());
+            if(collect.contains("end")){
+                return ResultDTO.failed(processId+": "+ actTaskProcdef.getTaskNo() +":拥有多个子节点任务节点不能直接关联结束节点");
+            }
+
+        }
+        actTaskProcdefs = actTaskProcdefs.stream().filter(it -> {
+            boolean f = false;
+            String preTaskIds = it.getPreTaskIds();
+            if (StringUtils.isEmpty(preTaskIds)) {
+                return true;
+            }
+            if (!preTaskIds.contains(",")) {
+                return true;
+            }
+            String voucherTemp = super.getById(taskNode.getId(), ActProcessTask.class).getVoucher();
+            String preTaskSql = task.getQuerySql() + " where is_deleted = 0 and state = 'FINISH' and voucher = 'true' and  taskf_id in " + super.conditionByIn(preTaskIds, String.class) + " order by id ";
+            List<ActProcessTask> list = super.list(preTaskSql, ActProcessTask.class, preTaskIds.split(","));
+            Set<String> fids = list.stream().map(item -> item.getTaskfId()).collect(Collectors.toSet());
+            Map<String, Boolean> res = new LinkedHashMap<>();
+            for (String id : preTaskIds.split(",")) {
+                res.put(id, fids.contains(id));
+            }
+            f = conditionLoad(it.getCond(), res, "task:" + task.getId() + " 审核同意, 因生成子任务节点中断任务", voucherTemp);
+            return f;
+        }).collect(Collectors.toList());
+
+
+        if(CollectionUtils.isEmpty(actTaskProcdefs)){
+            //审核后回调
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
+            return ResultDTO.success("成功");
+        }
+        String parentHistory = super.getById(task.getId(), ActProcessTask.class).getSelfHistory();
+        if(StringUtils.equals(actTaskProcdefs.get(0).getTaskNo(), "end")){
+            ActTaskProcdef end = actTaskProcdefs.get(0);
+            ActProcessTask actProcessTask = new ActProcessTask();
+            actProcessTask.setState(ProcessTaskStateEnum.FINISH.getName());
+            actProcessTask.setTaskName(end.getTaskName());
+            actProcessTask.setProcessfName(actProcdef.getActName());
+            actProcessTask.setProcessId(processId);
+            actProcessTask.setContent("流程审核结束");
+            actProcessTask.setTaskNo(end.getTaskNo());
+            actProcessTask.setSort(end.getSort());
+            actProcessTask.setAuditUser(task.getAuditUser());
+            actProcessTask.setStartTime(LocalDateTime.now());
+            actProcessTask.setEndTime(LocalDateTime.now());
+            actProcessTask.setTaskfId(end.getId());
+            actProcessTask.setPreTaskId(task.getId());
+            actProcessTask.setProcessfId(actProcdef.getId());
+            String taskId = super.insert(actProcessTask);
+            //审核后回调
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
+            ActProcess endProcess = new ActProcess();
+            endProcess.setId(processId);
+            endProcess.setState(ProcessStateEnum.END.getName());
+            endProcess.setEndTime(LocalDateTime.now());
+            super.updateById(endProcess);
+            taskRecord(taskId, end.getId(), parentHistory);
+            processTaskRecord(taskId, processId);
+            //流程结束回调
+            endNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
+            return ResultDTO.success("成功");
+        }
+
+        actTaskProcdefs.forEach(it -> {
+            ActProcessTask actProcessTask = new ActProcessTask();
+            actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
+            actProcessTask.setTaskName(it.getTaskName());
+            actProcessTask.setProcessId(processId);
+            actProcessTask.setTaskNo(it.getTaskNo());
+            actProcessTask.setSort(it.getSort());
+            actProcessTask.setProcessfName(actProcdef.getActName());
+            actProcessTask.setStartTime(LocalDateTime.now());
+            actProcessTask.setTaskfId(it.getId());
+            actProcessTask.setTagIds(it.getTagIds());
+            actProcessTask.setPreTaskId(task.getId());
+            String preTaskIds = it.getPreTaskIds();
+            StringBuilder pStr = new StringBuilder();
+            if(preTaskIds.contains(",") && !StringUtils.equals(it.getCond(), "or")){
+                String sql = actProcessTask.getQuerySql() + " where is_deleted = 0 and voucher = 'true' and taskf_id in " + super.conditionByIn(preTaskIds, String.class);
+                List<ActProcessTask> list = super.list(sql, ActProcessTask.class, preTaskIds.split(","));
+                String ids = list.stream().map(i -> {
+                    pStr.append(i.getSelfHistory().substring(i.getSelfHistory().lastIndexOf(",")+1)+"|");
+                    return i.getId();
+                }).collect(Collectors.joining(","));
+                actProcessTask.setPreTaskId(ids);
+            }
+
+            String pStrRes = pStr.toString();
+            if(StringUtils.isNotEmpty(pStrRes)){
+                pStrRes = ","+pStrRes.toString().substring(0, pStr.length() - 1);
+            }
+
+            actProcessTask.setProcessfId(actProcdef.getId());
+            actProcessTask.setVoucher("true");
+            actProcessTask.setVoucherCount(it.getNextTaskIds().split(",").length);
+            String taskId = super.insert(actProcessTask);
+            taskRecord(taskId, it.getId(), parentHistory + pStrRes);
+            processTaskRecord(taskId, processId);
+            //扣减凭证次数
+            for(String id :actProcessTask.getPreTaskId().split(",")){
+                deductionVoucher(id);
+            }
+        });
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+        //审核后回调
+        afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
+        ActProcess runProcess = new ActProcess();
+        runProcess.setId(processId);
+        runProcess.setState(ProcessStateEnum.RUN.getName());
+        super.updateById(runProcess);
+        return ResultDTO.success("成功");
+    }
+
     /**
      * 扣减凭证次数
      * @param id
@@ -418,6 +585,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         map.put("businessParams", Objects.isNull(businessParams) ? "": businessParams);
         return map;
     }
+
+
+
+
 
     /**
      * 审核拒绝
@@ -604,6 +775,82 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         return ResultDTO.success("成功");
     }
 
+
+    @Override
+    @FLowLock
+    @Transactional(rollbackFor = Exception.class)
+    public ResultDTO forcedEnd(ForcedEndReqDto reqDto) {
+        String processId = reqDto.getProcessId();
+        ActProcess actProcess = super.getById(processId, ActProcess.class);
+        if(Objects.isNull(actProcess)){
+            return ResultDTO.failed("失败");
+        }
+        if(StringUtils.equals(actProcess.getState(), ProcessStateEnum.END.getName())){
+            return  ResultDTO.failed("流程已经结束,无需操作");
+        }
+        ActProcdef actProcdef = super.getById(actProcess.getActId(), ActProcdef.class);
+        ProcessCommonModel processCommonModel = new ProcessCommonModel(processId, reqDto.getOperation(), true);
+        boolean audit = processCommonModel.isAudit();
+        if(!audit){
+            return ResultDTO.failed("没有强制结束权限");
+        }
+        ActProcessTask task = new ActProcessTask();
+
+        String querySql = task.getQuerySql() + " where state = 'RUN' and is_deleted = 0 and process_id = ?";
+        List<ActProcessTask> list = super.list(querySql, ActProcessTask.class, new Object[]{processId});
+        if(list != null && list.size() > 0){
+            list.forEach(it ->{
+                ActProcessTask temp = new ActProcessTask();
+                temp.setId(it.getId());
+                temp.setContent(reqDto.getContent());
+                temp.setEndTime(LocalDateTime.now());
+                temp.setState(ProcessTaskStateEnum.INTERRUPTED.getName());
+                User currentUser = getCurrentUser();
+                if(Objects.nonNull(currentUser)){
+                    temp.setAuditUser(currentUser.getUserName());
+                }
+                Optional.ofNullable(processCommonModel.getT()).ifPresent(param ->
+                        temp.setExpansionData(new LinkedHashMap(){{
+                            put("key1", param);
+                            put("key2", "流程强制结束");
+                        }})
+                );
+                super.updateById(temp);
+            });
+        }
+        ActTaskProcdef actTaskProcdef = super.getById(processCommonModel.getTaskNode().getTaskTemplateId(), ActTaskProcdef.class);
+        querySql = actTaskProcdef.getQuerySql() + " where task_no = 'end' and is_deleted = 0 ";
+        actTaskProcdef = super.selectOne(querySql, ActTaskProcdef.class, new Object[]{});
+
+        ActProcessTask actProcessTask = new ActProcessTask();
+        actProcessTask.setState(ProcessTaskStateEnum.INTERRUPTED.getName());
+        actProcessTask.setTaskName(actTaskProcdef.getTaskName());
+        actProcessTask.setProcessfName(actProcdef.getActName());
+        actProcessTask.setProcessId(processId);
+        actProcessTask.setContent("流程审核强制结束");
+        actProcessTask.setTaskNo(actTaskProcdef.getTaskNo());
+        actProcessTask.setSort(actTaskProcdef.getSort());
+        actProcessTask.setAuditUser(task.getAuditUser());
+        actProcessTask.setStartTime(LocalDateTime.now());
+        actProcessTask.setEndTime(LocalDateTime.now());
+        actProcessTask.setTaskfId(actTaskProcdef.getId());
+        actProcessTask.setPreTaskId(task.getId());
+        actProcessTask.setProcessfId(actProcdef.getId());
+        String taskId = super.insert(actProcessTask);
+        //审核后回调
+        Map<String, Object> map = afterParamDispose(taskId, reqDto.getOtherParam());
+        afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
+        ActProcess endProcess = new ActProcess();
+        endProcess.setId(processId);
+        endProcess.setState(ProcessStateEnum.END.getName());
+        endProcess.setEndTime(LocalDateTime.now());
+        super.updateById(endProcess);
+        //流程结束回调
+        endNotify(processId, actProcess.getClassName(), reqDto.getOperation());
+        return ResultDTO.success("成功");
+    }
+
+
     /**
      * 撤回
      * 规则如下：
@@ -745,6 +992,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }).collect(Collectors.toList());
         return ResultDTO.success(respDtos);
     }
+
 
 
     private boolean beforeNotify(String processId, String hookName, ProcessOperationEnum processOperationEnum){
