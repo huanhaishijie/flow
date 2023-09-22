@@ -71,6 +71,7 @@ public class ActTaskProcdefReqDto {
      * 流程模板id
      */
     @ApiModelProperty(name = "processFid", value = "流程模板id")
+    @NotBlank(message = "流程模板id不能为空")
     private String processFid;
 
 
