@@ -45,7 +45,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
         }
 
         actTaskProcdef.getQuerySql();
-        ActTaskProcdef temp = super.selectOne(actTaskProcdef.getQuerySql() + " where is_deleted = 0 and task_no = ? ", ActTaskProcdef.class, new Object[]{reqDto.getTaskNo()});
+        ActTaskProcdef temp = super.selectOne(actTaskProcdef.getQuerySql() + " where is_deleted = 0 and task_no = ? and process_fid = ? ", ActTaskProcdef.class, new Object[]{reqDto.getTaskNo(), reqDto.getProcessFid()});
         if(Objects.nonNull(temp) && org.apache.commons.lang3.StringUtils.isEmpty(reqDto.getId())){
            return  ResultDTO.failed("当前节点编号已经存在，请重新命名编号");
         }
