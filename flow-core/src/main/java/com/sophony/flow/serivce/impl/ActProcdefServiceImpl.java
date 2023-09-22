@@ -41,6 +41,9 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
         ActProcdef actProcdef = new ActProcdef();
         String sql = actProcdef.getQuerySql() + " where act_no = ? and is_deleted = 0 limit 1";
         ActProcdef res = super.selectOne(sql, ActProcdef.class , new Object[]{reqDto.getActNo()});
+        if(Objects.isNull(res) && StringUtils.isNotEmpty(reqDto.getId())){
+            res = super.getById(reqDto.getId(), ActProcdef.class);
+        }
         BeanUtils.copyProperties(reqDto, actProcdef);
         if(StringUtils.isEmpty(actProcdef.getId())){
             actProcdef.setState("0");
