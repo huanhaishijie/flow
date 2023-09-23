@@ -1,5 +1,6 @@
 package com.sophony.flow.serivce.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.sophony.flow.annotation.FLowLock;
 import com.sophony.flow.api.reqDto.ApproveReqDto;
 import com.sophony.flow.api.reqDto.ForcedEndReqDto;
@@ -339,6 +340,28 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             endNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
             return ResultDTO.success("成功");
         }
+        try {
+            List<ActTaskProcdef> finalActTaskProcdefs = actTaskProcdefs;
+            JSONObject otherParam = JSONObject.parseObject(approveReqDto.getOtherParam());
+            if(otherParam.containsKey("taskFids") && Objects.nonNull(otherParam.getJSONArray("taskFids"))){
+                Set<String> taskFids = otherParam.getJSONArray("taskFids").stream().map(Object::toString).collect(Collectors.toSet());
+                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).collect(Collectors.toList());
+                finalActTaskProcdefs.clear();
+                finalActTaskProcdefs.addAll(resList);
+            }
+            if(otherParam.containsKey("taskFid") && StringUtils.isNotEmpty(otherParam.getString("taskFid"))){
+                Optional<ActTaskProcdef> taskFNode = actTaskProcdefs.stream().filter(it -> it.getId().equals(otherParam.getString("taskFid"))).findFirst();
+                taskFNode.ifPresent(it ->{
+                   finalActTaskProcdefs.clear();
+                   finalActTaskProcdefs.add(it);
+               });
+            }
+            actTaskProcdefs  = finalActTaskProcdefs;
+        }catch (Exception e){
+
+        }
+
+
 
         actTaskProcdefs.forEach(it -> {
             ActProcessTask actProcessTask = new ActProcessTask();
