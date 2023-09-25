@@ -15,18 +15,18 @@ public class MysqlInitSql {
 
 
     public static final List<String> validSql = new ArrayList<String>(){{
-        add("select count(*) from information_schema.TABLES where table_name = 'act_procdef';");
-        add("select count(*) from information_schema.TABLES where table_name = 'act_process';");
-        add("select count(*) from information_schema.TABLES where table_name = 'act_process_lock';");
-        add("select count(*) from information_schema.TABLES where table_name = 'act_process_task';");
-        add("select count(*) from information_schema.TABLES where table_name = 'act_task_procdef';");
+        add("select count(*) from information_schema.TABLES where table_name = 'flow_act_procdef';");
+        add("select count(*) from information_schema.TABLES where table_name = 'flow_act_process';");
+        add("select count(*) from information_schema.TABLES where table_name = 'flow_act_process_lock';");
+        add("select count(*) from information_schema.TABLES where table_name = 'flow_act_process_task';");
+        add("select count(*) from information_schema.TABLES where table_name = 'flow_act_task_procdef';");
 
     }};
 
     public static final List<String> sqls = new ArrayList<String>() {
         {
-            add("DROP TABLE IF EXISTS `act_procdef`;");
-            add("CREATE TABLE `act_procdef`  (\n" +
+            add("DROP TABLE IF EXISTS `flow_act_procdef`;");
+            add("CREATE TABLE `flow_act_procdef`  (\n" +
                     "  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '流程编号-主键',\n" +
                     "  `act_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '流程名称',\n" +
                     "  `act_no` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,\n" +
@@ -41,8 +41,8 @@ public class MysqlInitSql {
                     "  PRIMARY KEY (`id`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '流程定义;' ROW_FORMAT = Dynamic;\n");
 
-            add("DROP TABLE IF EXISTS `act_process`;");
-            add("CREATE TABLE `act_process`  (\n" +
+            add("DROP TABLE IF EXISTS `flow_act_process`;");
+            add("CREATE TABLE `flow_act_process`  (\n" +
                     "  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',\n" +
                     "  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',\n" +
                     "  `expansion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '拓展数据',\n" +
@@ -60,8 +60,8 @@ public class MysqlInitSql {
                     "  PRIMARY KEY (`id`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;\n");
 
-            add("DROP TABLE IF EXISTS `act_process_lock`;");
-            add("CREATE TABLE `act_process_lock`  (\n" +
+            add("DROP TABLE IF EXISTS `flow_act_process_lock`;");
+            add("CREATE TABLE `flow_act_process_lock`  (\n" +
                     "  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,\n" +
                     "  `process_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,\n" +
                     "  `status` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态 lock 上锁\\\\ unlock 解锁',\n" +
@@ -76,8 +76,8 @@ public class MysqlInitSql {
                     "  PRIMARY KEY (`id`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;\n");
 
-            add("DROP TABLE IF EXISTS `act_process_task`;");
-            add("CREATE TABLE `act_process_task`  (\n" +
+            add("DROP TABLE IF EXISTS `flow_act_process_task`;");
+            add("CREATE TABLE `flow_act_process_task`  (\n" +
                     "  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',\n" +
                     "  `processf_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '流程定义编号',\n" +
                     "  `process_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '流行实例编号',\n" +
@@ -108,8 +108,8 @@ public class MysqlInitSql {
                     "  INDEX `idx_taskNo`(`task_no`) USING BTREE\n" +
                     ") ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '流程任务实例;' ROW_FORMAT = Dynamic;\n");
 
-            add("DROP TABLE IF EXISTS `act_task_procdef`;");
-            add("CREATE TABLE `act_task_procdef`  (\n" +
+            add("DROP TABLE IF EXISTS `flow_act_task_procdef`;");
+            add("CREATE TABLE `flow_act_task_procdef`  (\n" +
                     "  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'id',\n" +
                     "  `processf_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '流程模板名称',\n" +
                     "  `task_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务名称',\n" +

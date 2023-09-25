@@ -177,7 +177,7 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
 
 
     private List<ActTaskProcdefRespDto> getActTaskProcdefRespDtoByIds(String ids){
-        String sql = "select id, task_name from act_task_procdef where is_deleted on id in " + conditionByIn(ids, String.class) ;
+        String sql = "select id, task_name from flow_act_task_procdef where is_deleted on id in " + conditionByIn(ids, String.class) ;
         List<ActTaskProcdef> list = super.list(sql, ActTaskProcdef.class, ids.split(","));
         List<ActTaskProcdefRespDto> res = list.stream().map(it -> (ActTaskProcdefRespDto) it.copyProperties(ActTaskProcdefRespDto.class)).collect(Collectors.toList());
         return res;
