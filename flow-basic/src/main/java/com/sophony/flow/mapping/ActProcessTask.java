@@ -115,7 +115,7 @@ public class ActProcessTask extends BaseMappingEO {
 
     @Override
     public String getTableName() {
-        return "act_process_task";
+        return "flow_act_process_task";
     }
 
 

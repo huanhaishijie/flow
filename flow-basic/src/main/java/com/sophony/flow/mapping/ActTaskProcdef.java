@@ -80,7 +80,7 @@ public class ActTaskProcdef extends BaseMappingEO {
 
     @Override
     public String getTableName() {
-        return "act_task_procdef";
+        return "flow_act_task_procdef";
     }
 
 

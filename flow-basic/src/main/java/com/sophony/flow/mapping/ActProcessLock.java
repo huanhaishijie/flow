@@ -70,7 +70,7 @@ public class ActProcessLock extends BaseMappingEO {
 
     @Override
     public String getTableName(){
-        return "act_process_lock";
+        return "flow_act_process_lock";
     }
 
 }
