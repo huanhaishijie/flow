@@ -164,13 +164,21 @@ public class ActTaskProcdefServiceImpl extends BaseService implements IActTaskPr
 
     @Override
     public ResultDTO<List<ActTaskProcdefRespDto>> listByActId(String actId) {
-        ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
-        String sql = actTaskProcdef.getQuerySql() + " where is_deleted = 0 and process_fid = ? order by sort, create_time ";
+        ActTaskProcdef eo = new ActTaskProcdef();
+        String sql = eo.getQuerySql() + " where is_deleted = 0 and process_fid = ? order by sort, create_time ";
         List<ActTaskProcdef> list = super.list(sql, ActTaskProcdef.class, new Object[]{actId});
         if(CollectionUtils.isEmpty(list)){
             return ResultDTO.success(new ArrayList<>());
         }
-        List<ActTaskProcdefRespDto> collect = list.stream().map(it -> (ActTaskProcdefRespDto) it.copyProperties(ActTaskProcdefRespDto.class)).collect(Collectors.toList());
+        List<ActTaskProcdefRespDto> collect = list.stream().map(actTaskProcdef -> {
+            ActTaskProcdefRespDto actTaskProcdefRespDto = (ActTaskProcdefRespDto) actTaskProcdef.copyProperties(ActTaskProcdefRespDto.class);
+            Optional.ofNullable(actTaskProcdef.getBackTasks()).ifPresent(it -> actTaskProcdefRespDto.setBackTaskDtos(getActTaskProcdefRespDtoByIds(it)));
+            Optional.ofNullable(actTaskProcdef.getNextTaskIds()).ifPresent(it -> actTaskProcdefRespDto.setNextTaskIds(Arrays.asList(it.split(","))));
+            Optional.ofNullable(actTaskProcdef.getTagIds()).ifPresent(it -> actTaskProcdefRespDto.setTagIds(Arrays.asList(it.split(","))));
+            Optional.ofNullable(actTaskProcdef.getInterruptTag()).ifPresent(it -> actTaskProcdefRespDto.setInterruptTag(Arrays.asList(it.split(","))));
+            Optional.ofNullable(actTaskProcdef.getPreTaskIds()).ifPresent(it -> actTaskProcdefRespDto.setPreTaskIds(Arrays.asList(it.split(","))));
+            return actTaskProcdefRespDto;
+        }).collect(Collectors.toList());
         return ResultDTO.success(collect);
 
     }
