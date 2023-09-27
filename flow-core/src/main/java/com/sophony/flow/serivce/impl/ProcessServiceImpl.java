@@ -842,8 +842,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             });
         }
         ActTaskProcdef actTaskProcdef = super.getById(processCommonModel.getTaskNode().getTaskTemplateId(), ActTaskProcdef.class);
-        querySql = actTaskProcdef.getQuerySql() + " where task_no = 'end' and is_deleted = 0 ";
-        actTaskProcdef = super.selectOne(querySql, ActTaskProcdef.class, new Object[]{});
+        querySql = actTaskProcdef.getQuerySql() + " where task_no = 'end' and is_deleted = 0 and process_fid = ? ";
+        actTaskProcdef = super.selectOne(querySql, ActTaskProcdef.class, new Object[]{actTaskProcdef.getProcessFid()});
 
         ActProcessTask actProcessTask = new ActProcessTask();
         actProcessTask.setState(ProcessTaskStateEnum.INTERRUPTED.getName());
