@@ -344,7 +344,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             JSONObject otherParam = JSONObject.parseObject(approveReqDto.getOtherParam());
             if(otherParam.containsKey("taskFids") && Objects.nonNull(otherParam.getJSONArray("taskFids"))){
                 Set<String> taskFids = otherParam.getJSONArray("taskFids").stream().map(Object::toString).collect(Collectors.toSet());
-                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).collect(Collectors.toList());
+                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).filter(Objects::nonNull).collect(Collectors.toList());
                 finalActTaskProcdefs.clear();
                 finalActTaskProcdefs.addAll(resList);
             }
