@@ -345,7 +345,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             JSONObject otherParam = JSONObject.parseObject(approveReqDto.getOtherParam());
             if(otherParam.containsKey("taskFids") && Objects.nonNull(otherParam.getJSONArray("taskFids"))){
                 Set<String> taskFids = otherParam.getJSONArray("taskFids").stream().map(Object::toString).collect(Collectors.toSet());
-                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).collect(Collectors.toList());
+                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).filter(Objects::nonNull).collect(Collectors.toList());
                 finalActTaskProcdefs.clear();
                 finalActTaskProcdefs.addAll(resList);
             }
@@ -527,6 +527,28 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             //流程结束回调
             endNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
             return ResultDTO.success("成功");
+        }
+
+
+        try {
+            List<ActTaskProcdef> finalActTaskProcdefs = actTaskProcdefs;
+            JSONObject otherParam = JSONObject.parseObject(approveReqDto.getOtherParam());
+            if(otherParam.containsKey("taskFids") && Objects.nonNull(otherParam.getJSONArray("taskFids"))){
+                Set<String> taskFids = otherParam.getJSONArray("taskFids").stream().map(Object::toString).collect(Collectors.toSet());
+                List<ActTaskProcdef> resList = finalActTaskProcdefs.stream().map(it -> taskFids.contains(it.getId()) ? it : null).filter(Objects::nonNull).collect(Collectors.toList());
+                finalActTaskProcdefs.clear();
+                finalActTaskProcdefs.addAll(resList);
+            }
+            if(otherParam.containsKey("taskFid") && StringUtils.isNotEmpty(otherParam.getString("taskFid"))){
+                Optional<ActTaskProcdef> taskFNode = actTaskProcdefs.stream().filter(it -> it.getId().equals(otherParam.getString("taskFid"))).findFirst();
+                taskFNode.ifPresent(it ->{
+                    finalActTaskProcdefs.clear();
+                    finalActTaskProcdefs.add(it);
+                });
+            }
+            actTaskProcdefs  = finalActTaskProcdefs;
+        }catch (Exception e){
+
         }
 
         actTaskProcdefs.forEach(it -> {
