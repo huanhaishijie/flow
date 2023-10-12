@@ -1493,6 +1493,9 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         List<String> ids = new ArrayList<>();
         map.forEach((k, v) -> {if(!v) ids.add(k);});
         String idsStr = ids.stream().collect(Collectors.joining(","));
+        if(StringUtils.isEmpty(idsStr)){
+            return true;
+        }
 
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(idsStr, ActTaskProcdef.class);
 
