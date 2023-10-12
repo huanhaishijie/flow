@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.SQLStateSQLExceptionTranslator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,15 +112,25 @@ public class ExpandService implements DataService {
     @SneakyThrows
     public List list(String sql, Class aClass) {
         BaseMappingEO baseMappingEO = (BaseMappingEO) aClass.newInstance();
-        List list = jdbcTemplate.query(sql, baseMappingEO);
-        return list;
+        List res = new ArrayList();
+        try {
+            res = jdbcTemplate.query(sql, baseMappingEO);
+        }catch (Exception e){
+            res.add(jdbcTemplate.queryForObject(sql, baseMappingEO));
+        }
+        return res;
     }
 
     @Override
     @SneakyThrows
     public List list(String sql, Class aClass, Object[] args) {
         BaseMappingEO baseMappingEO = (BaseMappingEO) aClass.newInstance();
-        List res = jdbcTemplate.query(sql, baseMappingEO, args);
+        List res = new ArrayList();
+        try {
+            res = jdbcTemplate.query(sql, baseMappingEO, args);
+        }catch (Exception e){
+            res.add(jdbcTemplate.queryForObject(sql, baseMappingEO, args));
+        }
         return res;
     }
 
@@ -127,7 +138,7 @@ public class ExpandService implements DataService {
     @SneakyThrows
     public BaseMappingEO getById(String id, Class aClass) {
         BaseMappingEO baseMappingEO = (BaseMappingEO) aClass.newInstance();
-        String sql = "select * from "+ baseMappingEO.getTableName() +" where id = ? and is_deleted = 0 limit 1 ";
+        String sql = baseMappingEO.getQuerySql() +" where id = ? and is_deleted = 0 limit 1 ";
         return (BaseMappingEO) jdbcTemplate.queryForObject(sql, baseMappingEO, id);
     }
 
