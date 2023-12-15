@@ -260,7 +260,7 @@ yzm.flow.annotation=true/false
 ![img_12.png](img_12.png)
 
 
-1.创建demo ![img_13.png](img_13.png)
+2.创建demo ![img_13.png](img_13.png)
 
 ```
 @Service
@@ -311,7 +311,74 @@ public class DemoService implements IProcess{
 }
 
 ```
+以上是原始方案，第二种方案是使用注解方案
 
+3.注解方案(注解模式不能上面的方案混用，要一开始就决定好使用哪种方案)
+
+3.1 开启流程(使用流程编号和监听器构建流程)
+
+注解模式下，当前监听器由当前框架实例化，不需要托管给spring
+![img_14.png](img_14.png)
+
+3.2 监听器实现
+```
+public class DocumentFlowListener {
+
+    private static Logger log = LoggerFactory.getLogger(DocumentFlowListener.class);
+
+    @Autowired
+    private Mapper mapper;
+
+    static Map<String, String> map = Maps.newHashMap();
+
+    @FlowAuditBefore(processTemplateIds = {"document_management"})
+    boolean before() {
+        Object o = BusParam.getInstance().getMap().get(ParamKey.CONTENTKEY);
+        log.info("流程开启上下文参数{}", JSON.toJSON(o));
+        //TODO 业务逻辑
+        ProcessCommonModel processCommonModel = (ProcessCommonModel) o;
+
+        System.out.println("审核前通知");
+        return true;
+    }
+
+
+    @FlowAuditStart
+    void start() {
+          //TODO 流程开启监听
+    
+    
+    }
+
+
+    @FlowAuditAfter(processTemplateIds = {"document_management"})
+    void after() {
+        Object o = BusParam.getInstance().getMap().get(ParamKey.CONTENTKEY);
+        log.info("流程开启上下文参数{}", JSON.toJSON(o));
+        //TODO 审核后消息提醒，下一个任务节点控制等任务处理
+        ProcessCommonModel processCommonModel = (ProcessCommonModel) o;
+        JSONObject businessParams = JSON.parseObject(processCommonModel.getBusinessParams());
+        //..........
+    }
+
+
+    @FlowAuditEnd(processTemplateIds = {"document_management"})
+    void end() {
+        Object o = BusParam.getInstance().getMap().get(ParamKey.CONTENTKEY);
+        log.info("流程开启上下文参数{}", JSON.toJSON(o));
+        //TODO 流程结束任务回调，做数据状态完成更新
+        ProcessCommonModel processCommonModel = (ProcessCommonModel) o;
+        mapper.finishDocumentFlow(processCommonModel.getProcessId());
+    }
+
+}
+
+
+
+```
+
+4.审批操作流程图
+![img_16.png](img_16.png)
 
 
 
