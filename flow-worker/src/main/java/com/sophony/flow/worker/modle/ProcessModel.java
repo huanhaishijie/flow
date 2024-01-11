@@ -35,7 +35,7 @@ public abstract class ProcessModel implements IProcess {
 
     private boolean isCleanCache;
 
-    private ProcessOperationEnum operation;
+    protected ProcessOperationEnum operation;
 
     private TaskNode taskNode;
 
