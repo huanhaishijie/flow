@@ -303,7 +303,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         if(CollectionUtils.isEmpty(actTaskProcdefs)){
             //审核后回调
-            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam(), approveReqDto.getOperation());
             afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
             return ResultDTO.success("成功");
         }
@@ -326,7 +326,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             actProcessTask.setProcessfId(actProcdef.getId());
             String taskId = super.insert(actProcessTask);
             //审核后回调
-            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam(), approveReqDto.getOperation());
             afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
             ActProcess endProcess = new ActProcess();
             endProcess.setId(processId);
@@ -402,7 +402,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 deductionVoucher(id);
             }
         });
-        Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam());
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), approveReqDto.getOtherParam(), approveReqDto.getOperation());
         //审核后回调
         afterNotify(processId, actProcess.getClassName(), approveReqDto.getOperation(), map);
         ActProcess runProcess = new ActProcess();
@@ -435,10 +435,11 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     }
 
 
-    private Map<String, Object>   afterParamDispose(String taskId, String businessParams){
+    private Map<String, Object>   afterParamDispose(String taskId, String businessParams, ProcessOperationEnum operation){
         Map<String, Object> map = new ConcurrentHashMap<>();
         map.put("currentNode", super.getById(taskId, ActProcessTask.class));
         map.put("businessParams", Objects.isNull(businessParams) ? "": businessParams);
+        map.put("operation", operation);
         return map;
     }
 
@@ -573,7 +574,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 processTaskRecord(taskId, processId);
             });
             //审核后回调
-            Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+            Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam(), reqDto.getOperation() );
             afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
             return ResultDTO.success("成功");
         }
@@ -622,7 +623,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             taskRecord(taskId, it.getId(),  backNode.getSelfHistory());
             processTaskRecord(taskId, processId);
         });
-        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam(), reqDto.getOperation());
         afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
         return ResultDTO.success("成功");
     }
@@ -726,7 +727,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         actProcessTask.setVoucher("true");
         actProcessTask.setVoucherCount(1);
         super.insert(actProcessTask);
-        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam());
+        Map<String, Object> map = afterParamDispose(taskNode.getId(), reqDto.getOtherParam(), reqDto.getOperation());
         afterNotify(processId, actProcess.getClassName(), reqDto.getOperation(), map);
         return ResultDTO.success("成功");
     }
