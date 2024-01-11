@@ -7,6 +7,7 @@ import com.sophony.flow.worker.modle.TaskPermission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * ExPandPermissionValidService
@@ -31,8 +32,8 @@ public class ExpandPermissionValidService  implements FlowValidService {
     }
 
     @Override
-    public TaskPermission valid(List<TaskNode> taskNodeList) {
-        return permissionValid.valid(taskNodeList);
+    public TaskPermission valid(List<TaskNode> taskNodeList, Map<String, Object> params) {
+        return permissionValid.valid(taskNodeList, params);
     }
 
 

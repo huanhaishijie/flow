@@ -4,6 +4,7 @@ import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.TaskPermission;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * FlowValidService
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public interface FlowValidService {
 
-    TaskPermission valid(List<TaskNode> taskNodeList);
+    TaskPermission valid(List<TaskNode> taskNodeList, Map<String, Object> params);
 
 
 }

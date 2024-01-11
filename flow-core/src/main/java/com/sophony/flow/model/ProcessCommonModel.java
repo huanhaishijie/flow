@@ -13,10 +13,8 @@ import com.sophony.flow.worker.modle.TaskPermission;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +26,7 @@ import java.util.stream.Collectors;
  * @date 2023/3/10 13:01
  */
 
-@JsonIgnoreProperties({"isCleanCache", "operation"})
+@JsonIgnoreProperties({"isCleanCache", "operation", "info"})
 public class ProcessCommonModel extends ProcessModel {
 
 
@@ -41,6 +39,14 @@ public class ProcessCommonModel extends ProcessModel {
     }
 
     String atcNo;
+
+
+    protected transient Function<ProcessCommonModel, Map<String, Object>> info = model -> new LinkedHashMap<String, Object>(){{
+        put("processId", model.getProcessId());
+        put("processTemplateId", model.getProcessTemplateId());
+        put("operation", operation);
+        put("businessParams", model.getBusinessParams());
+    }};
 
     @Override
     public void init() {
@@ -59,7 +65,7 @@ public class ProcessCommonModel extends ProcessModel {
             this.setWithdraw(false);
             return;
         }
-        TaskPermission valid = flowBeanFactory.getFlowValidService().valid(currentTask);
+        TaskPermission valid = flowBeanFactory.getFlowValidService().valid(currentTask, info.apply(this));
         if(CollectionUtils.isEmpty(valid.getTaskNodeList())){
             this.setAudit(false);
             this.setWithdraw(false);
@@ -96,7 +102,8 @@ public class ProcessCommonModel extends ProcessModel {
             pre.setTaskNo(task.getTaskNo());
             list.add(pre);
         });
-        valid = flowBeanFactory.getFlowValidService().valid(list);
+
+        valid = flowBeanFactory.getFlowValidService().valid(list, info.apply(this));
         if(CollectionUtils.isEmpty(valid.getTaskNodeList())){
             return;
         }

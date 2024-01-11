@@ -6,6 +6,7 @@ import com.sophony.flow.worker.modle.TaskPermission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * DefaultFlowValidService
@@ -18,7 +19,7 @@ import java.util.List;
 @Service
 public class DefaultFlowValidService implements FlowValidService {
     @Override
-    public TaskPermission valid(List<TaskNode> taskNodeList) {
+    public TaskPermission valid(List<TaskNode> taskNodeList, Map<String, Object> params) {
         TaskPermission taskPermission = new TaskPermission();
         taskPermission.setTaskNodeList(taskNodeList);
         taskPermission.setAudit(true);
