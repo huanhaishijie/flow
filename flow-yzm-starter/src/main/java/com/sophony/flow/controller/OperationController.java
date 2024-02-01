@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * OperationController
@@ -37,6 +38,13 @@ public class OperationController {
     @ApiOperation(value = "审核同意", notes = "审核同意")
     public ResultDTO nextProcess(@RequestBody @Valid ApproveReqDto approveReqDto) {
         return processService.approve(approveReqDto);
+    }
+
+
+    @PostMapping("/batchApprove")
+    @ApiOperation(value = "批量审核同意", notes = "批量审核同意")
+    public ResultDTO batchApprove(@RequestBody @Valid List<ApproveReqDto> approveReqDtos) {
+        return processService.batchApprove(approveReqDtos);
     }
 
     @PostMapping("/refuse")

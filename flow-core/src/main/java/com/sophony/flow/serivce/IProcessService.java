@@ -6,6 +6,8 @@ import com.sophony.flow.api.reqDto.WithdrawReqDto;
 import com.sophony.flow.commons.ResultDTO;
 import com.sophony.flow.commons.model.IProcess;
 
+import java.util.List;
+
 /**
  * IActProcessService
  *
@@ -67,4 +69,11 @@ public interface IProcessService {
      * @return
      */
     ResultDTO getTaskHistory(String processId);
+
+    /**
+     * 批量审核同意
+     * @param approveReqDtos
+     * @return
+     */
+    ResultDTO batchApprove(List<ApproveReqDto> approveReqDtos);
 }

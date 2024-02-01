@@ -770,6 +770,25 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         return ResultDTO.success(respDtos);
     }
 
+    @Override
+    public ResultDTO batchApprove(List<ApproveReqDto> approveReqDtos) {
+        List<LinkedHashMap<String, Object>> res = approveReqDtos.stream().map(dto -> {
+            LinkedHashMap<String, Object> info = new LinkedHashMap<>();
+            info.put("processId", dto.getProcessId());
+            try {
+                approve(dto);
+                info.put("state", "success");
+                info.put("message", "审批通过成功");
+            } catch (Exception e) {
+                e.printStackTrace();
+                info.put("state", "error");
+                info.put("message", e.getMessage());
+            }
+            return info;
+        }).collect(Collectors.toList());
+        return ResultDTO.success(res);
+    }
+
 
     private boolean beforeNotify(String processId, String hookName, ProcessOperationEnum processOperationEnum){
         if(StringUtils.isEmpty(hookName)){
