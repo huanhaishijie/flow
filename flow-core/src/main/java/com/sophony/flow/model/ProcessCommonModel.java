@@ -41,10 +41,10 @@ public class ProcessCommonModel extends ProcessModel {
     String atcNo;
 
 
-    protected transient Function<ProcessCommonModel, Map<String, Object>> info = model -> new LinkedHashMap<String, Object>(){{
+    protected static final Function<ProcessCommonModel, Map<String, Object>> info = model -> new LinkedHashMap<String, Object>(){{
         put("processId", model.getProcessId());
         put("processTemplateId", model.getProcessTemplateId());
-        put("operation", operation);
+        put("operation", model.getOperation());
         put("businessParams", model.getBusinessParams());
     }};
 
