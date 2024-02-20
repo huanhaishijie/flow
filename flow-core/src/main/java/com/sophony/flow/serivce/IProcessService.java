@@ -76,4 +76,12 @@ public interface IProcessService {
      * @return
      */
     ResultDTO batchApprove(List<ApproveReqDto> approveReqDtos);
+
+    /**
+     * 批量审核拒绝
+     * @param approveReqDtos
+     * @return
+     */
+    ResultDTO batchRefuse(List<RefuseReqDto> approveReqDtos);
+
 }

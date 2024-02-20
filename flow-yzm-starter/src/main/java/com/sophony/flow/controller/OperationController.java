@@ -54,6 +54,13 @@ public class OperationController {
     }
 
 
+    @PostMapping("/batchRefuse")
+    @ApiOperation(value = "批量审核拒绝", notes = "批量审核拒绝")
+    public ResultDTO batchRefuse(@RequestBody @Valid List<RefuseReqDto> approveReqDtos) {
+        return processService.batchRefuse(approveReqDtos);
+    }
+
+
     @PostMapping("/withdraw")
     @ApiOperation(value = "撤回", notes = "withdraw")
     public ResultDTO withdrawProcess(@RequestBody @Valid WithdrawReqDto reqDto) {
