@@ -771,41 +771,17 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultDTO batchApprove(List<ApproveReqDto> approveReqDtos) {
-        List<LinkedHashMap<String, Object>> res = approveReqDtos.stream().map(dto -> {
-            LinkedHashMap<String, Object> info = new LinkedHashMap<>();
-            info.put("processId", dto.getProcessId());
-            try {
-                approve(dto);
-                info.put("state", "success");
-                info.put("message", "审批通过成功");
-            } catch (Exception e) {
-                e.printStackTrace();
-                info.put("state", "error");
-                info.put("message", e.getMessage());
-            }
-            return info;
-        }).collect(Collectors.toList());
-        return ResultDTO.success(res);
+        approveReqDtos.forEach(reqDto -> approve(reqDto));
+        return ResultDTO.success("成功");
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultDTO batchRefuse(List<RefuseReqDto> approveReqDtos) {
-        List<LinkedHashMap<String, Object>> res = approveReqDtos.stream().map(dto -> {
-            LinkedHashMap<String, Object> info = new LinkedHashMap<>();
-            info.put("processId", dto.getProcessId());
-            try {
-                refuse(dto);
-                info.put("state", "success");
-                info.put("message", "审批通过成功");
-            } catch (Exception e) {
-                e.printStackTrace();
-                info.put("state", "error");
-                info.put("message", e.getMessage());
-            }
-            return info;
-        }).collect(Collectors.toList());
-        return ResultDTO.success(res);
+        approveReqDtos.forEach(reqDto -> refuse(reqDto));
+        return ResultDTO.success("成功");
     }
 
 
