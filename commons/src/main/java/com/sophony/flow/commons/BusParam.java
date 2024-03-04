@@ -17,13 +17,13 @@ public class BusParam {
     private BusParam(){
     }
 
-    private static class SingletonHoder{
+    private static class SingletonHolder{
         private static BusParam instance = new BusParam();
     }
 
 
     public static BusParam getInstance(){
-        return BusParam.SingletonHoder.instance;
+        return BusParam.SingletonHolder.instance;
     }
 
     public void setMap(Map<String, Object> map){

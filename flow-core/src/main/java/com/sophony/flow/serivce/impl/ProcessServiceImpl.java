@@ -246,7 +246,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }
         boolean b = beforeNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
         if(!b){
-            return ResultDTO.failed("业务条件校验不通过，审核终止");
+            ResultDTO resultDTO = BusParam.getInstance().getMap().containsKey(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG) ?
+                    ResultDTO.failed(String.valueOf(BusParam.getInstance().getMap().get(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG))) : ResultDTO.failed("业务条件校验不通过，审核终止");
+            BusParam.getInstance().getMap().remove(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG);
+            return resultDTO;
         }
         TaskNode taskNode = processCommonModel.getTaskNode();
         ActProcessTask task = new ActProcessTask();
@@ -838,6 +841,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
             try {
                 f = (boolean) method.invoke(process);
+                BusParam.getInstance().getMap().remove(ParamKey.CONTENTKEY);
                 return f;
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
