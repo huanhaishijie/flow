@@ -12,6 +12,7 @@ public class ParamKey {
 
 
     public static final String CONTENTKEY = "PROCESSCONTEXT";
+    public static final String CONTENTKEY_BEFORE_ERROR_MSG = "CONTENTKEY_BEFORE_ERROR_MSG";
     public static final String ACTNO = "ACTNO";
 
 }
