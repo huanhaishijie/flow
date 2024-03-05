@@ -299,7 +299,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             for (String id : preTaskIds.split(",")) {
                 res.put(id, fids.contains(id));
             }
-            f = conditionLoad(it.getCond(), res, "task:" + task.getId() + " 审核同意, 因生成子任务节点中断任务", voucherTemp);
+            f = conditionLoad(processId, it.getCond(), res, "task:" + task.getId() + " 审核同意, 因生成子任务节点中断任务", voucherTemp);
             return f;
         }).collect(Collectors.toList());
 
@@ -519,8 +519,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 }
             });
             scopeIdsSet.forEach(it -> {
-                String sql = " update "+ backNode.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
-                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
+                String sql = " update "+ backNode.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', content = 'task:"+task.getId()
+                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'"+ " and process_id = '"+ processId +"'";
                 jdbcTemplate.update(sql);
             });
 
@@ -551,7 +551,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 }
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            interrupted(taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
+            interrupted(processId, taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
 
             actTaskProcdefs.forEach(it -> {
                 ActProcessTask actProcessTask = new ActProcessTask();
@@ -602,7 +602,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
-        interrupted(taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
+        interrupted(processId, taskIds, "task:"+ currentNode.getId() +" 审核拒绝,触发中断操作", "" );
 
         actTaskProcdefs.forEach(it -> {
             ActProcessTask actProcessTask = new ActProcessTask();
@@ -703,8 +703,8 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             });
             ActProcessTask finalProcessTask = processTask;
             scopeIdsSet.forEach(it -> {
-                String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', \"content\" = 'task:"+task.getId()
-                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
+                String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', content = 'task:"+task.getId()
+                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'" + " and process_id = '"+processId+"'";
                 jdbcTemplate.update(sql);
             });
 
@@ -713,7 +713,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         String scopeIds = scopeIdsSet.stream().collect(Collectors.joining(","));
         String scopeTaskIds = scopeIdsSet.stream().collect(Collectors.joining(","));
 
-        interrupted(Arrays.asList(scopeIds), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
+        interrupted(processId, Arrays.asList(scopeIds), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
         processTask = super.getById(preTaskId, ActProcessTask.class);
         ActProcessTask actProcessTask = new ActProcessTask();
         actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
@@ -1231,7 +1231,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
 
 
-    private boolean conditionLoad(String condition, Map<String, Boolean> map,String message, String voucher){
+    private boolean conditionLoad(String processId, String condition, Map<String, Boolean> map,String message, String voucher){
         if(StringUtils.isEmpty(condition)){
             condition = "and";
         }
@@ -1248,13 +1248,14 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
         List<ActTaskProcdef> actTaskProcdefs = super.selectByIds(idsStr, ActTaskProcdef.class);
 
-        String sql1 = "update " + new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'   where is_deleted = 0 " +
+        String sql1 = "update " + new ActProcessTask().getTableName() + " set content = ? , state = ?, voucher = 'false'   where is_deleted = 0 " +
                 " and state = '"+ProcessTaskStateEnum.RUN.getName()+"' and voucher = 'true'" +
-                " and taskf_id in " + super.conditionByIn(idsStr, String.class);
+                " and taskf_id in " + super.conditionByIn(idsStr, String.class)+" and process_id = ?";
         List<Object> params = new ArrayList<>();
         params.add(message);
         params.add(ProcessTaskStateEnum.INTERRUPTED.getName());
         params.addAll(Arrays.asList(idsStr.split(",")));
+        params.add(processId);
         jdbcTemplate.update(sql1, params.toArray());
 
 
@@ -1274,10 +1275,10 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
      * @param message
      * @param voucher
      */
-    private void interrupted(Collection<String> ids, String message, String voucher){
+    private void interrupted(String processId, Collection<String> ids, String message, String voucher){
         ids.forEach(it -> {
-            String sql = "update " +new ActProcessTask().getTableName() + " set \"content\" = ? , \"state\" = ?, \"voucher\" = 'false'  where is_deleted = 0 " +
-                    " and voucher = 'true' and  state = '"+ProcessTaskStateEnum.RUN.getName()+"' and self_history like '%"+it+"%' ";
+            String sql = "update " +new ActProcessTask().getTableName() + " set content = ? , state = ?, voucher = 'false'  where is_deleted = 0 " +
+                    " and voucher = 'true' and  state = '"+ProcessTaskStateEnum.RUN.getName()+"' and self_history like '%"+it+"%' and process_id = '"+processId+"'";
             jdbcTemplate.update(sql, message, ProcessTaskStateEnum.INTERRUPTED.getName());
         });
     }
