@@ -969,7 +969,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             ActProcessTask finalProcessTask = processTask;
             scopeIdsSet.forEach(it -> {
                 String sql = " update "+ finalProcessTask.getTableName() + " set voucher = 'false' , state = '"+ProcessTaskStateEnum.INTERRUPTED.getName()+"', content = 'task:"+task.getId()
-                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'";
+                        +"任务节点执行撤回，相关连的任务中断'" +" where state = 'RUN' and is_deleted = 0 and taskf_id != '"+actTaskProcdef.getId()+"' and self_history like '%"+it+"%'" + " and process_id = '"+processId+"'";
                 jdbcTemplate.update(sql);
             });
 
@@ -978,7 +978,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         String scopeIds = scopeIdsSet.stream().collect(Collectors.joining(","));
         String scopeTaskIds = scopeIdsSet.stream().collect(Collectors.joining(","));
 
-        interrupted(Arrays.asList(scopeIds), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
+        interrupted(processId, Arrays.asList(scopeIds), "task:" + task.getId() + " 任务节点执行撤回，相关连的任务中断", "");
         processTask = super.getById(preTaskId, ActProcessTask.class);
         ActProcessTask actProcessTask = new ActProcessTask();
         actProcessTask.setState(ProcessTaskStateEnum.RUN.getName());
