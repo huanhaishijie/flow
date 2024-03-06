@@ -485,7 +485,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
             for (String id : preTaskIds.split(",")) {
                 res.put(id, fids.contains(id));
             }
-            f = conditionLoad(it.getCond(), res, "task:" + task.getId() + " 审核同意, 因生成子任务节点中断任务", voucherTemp);
+            f = conditionLoad(processId, it.getCond(), res, "task:" + task.getId() + " 审核同意, 因生成子任务节点中断任务", voucherTemp);
             return f;
         }).collect(Collectors.toList());
 
