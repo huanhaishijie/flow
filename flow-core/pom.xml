@@ -20,6 +20,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.yzm.project</groupId>
+            <artifactId>commons_tool</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <scope>provided</scope>

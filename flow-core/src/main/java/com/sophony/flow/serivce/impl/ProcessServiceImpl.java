@@ -31,6 +31,7 @@ import com.sophony.flow.worker.common.FlowBeanFactory;
 import com.sophony.flow.worker.common.FlowClassLoader;
 import com.sophony.flow.worker.modle.TaskNode;
 import com.sophony.flow.worker.modle.User;
+import com.yzm.project.exception.BusinessException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -830,7 +831,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
                 BusParam.getInstance().getMap().remove(ParamKey.CONTENTKEY);
                 return f;
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                throw new BusinessException(e.getMessage());
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }

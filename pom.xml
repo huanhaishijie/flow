@@ -33,6 +33,7 @@
         <commons.io.version>2.11.0</commons.io.version>
         <logback.version>1.2.9</logback.version>
         <commons-pool2.version>2.4.2</commons-pool2.version>
+        <commons_tools.version>1.0.0</commons_tools.version>
     </properties>
 
 
@@ -113,6 +114,11 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yzm.project</groupId>
+                <artifactId>commons_tool</artifactId>
+                <version>${commons_tools.version}</version>
             </dependency>
 
 
