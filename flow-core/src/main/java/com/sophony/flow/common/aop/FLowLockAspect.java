@@ -2,7 +2,6 @@ package com.sophony.flow.common.aop;
 
 import com.sophony.flow.mapping.ActProcessLock;
 import com.sophony.flow.serivce.IActProcessLockService;
-import io.swagger.models.auth.In;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;

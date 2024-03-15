@@ -1,7 +1,6 @@
 package com.sophony.flow.api.reqDto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
@@ -18,7 +17,6 @@ import java.util.List;
  * @description
  * @date 2023/3/9 19:54
  */
-@ApiModel(value = "ActTaskProcdefReqDto", description = "任务模板Dto")
 @Data
 public class ActTaskProcdefReqDto {
 
@@ -29,34 +27,29 @@ public class ActTaskProcdefReqDto {
     /**
      *流程模板名称
      */
-    @ApiModelProperty(name = "processfName", value = "流程模板名称")
     @NotBlank(message = "流程模板名称不能为空")
     private String processfName;
 
     /**
      * 任务名称
      */
-    @ApiModelProperty(name = "taskName", value = "任务名称")
     private String taskName;
 
 
     /**
      * 任务编号
      */
-    @ApiModelProperty(name = "taskNo", value = "任务编号")
     @NotBlank(message = "任务编号不能为空")
     private String taskNo;
 
     /**
      * 任务排序
      */
-    @ApiModelProperty(name = "sort", value = "任务排序")
     private Integer sort;
 
     /**
      * 任务备注
      */
-    @ApiModelProperty(name = "remark", value = "任务备注")
     private String remark;
 
 
@@ -64,13 +57,11 @@ public class ActTaskProcdefReqDto {
      * 退回节点，可以多节点
      */
 
-    @ApiModelProperty(name = "backTasks", value = "backTasks")
     private List<String> backTasks;
 
     /**
      * 流程模板id
      */
-    @ApiModelProperty(name = "processFid", value = "流程模板id")
     @NotBlank(message = "流程模板id不能为空")
     private String processFid;
 
@@ -78,7 +69,6 @@ public class ActTaskProcdefReqDto {
     /**
      * 上一级任务节点
      */
-    @ApiModelProperty(name = "preTaskIds", value = "上一级任务节点")
     private List<String> preTaskIds;
 
 
@@ -90,7 +80,7 @@ public class ActTaskProcdefReqDto {
 
 
 
-    @ApiModelProperty(name = "cond", value = "条件")
+
     private String cond;
 
 

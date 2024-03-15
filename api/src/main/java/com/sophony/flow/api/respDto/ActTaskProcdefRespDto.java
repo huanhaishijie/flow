@@ -1,7 +1,6 @@
 package com.sophony.flow.api.respDto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
@@ -17,7 +16,6 @@ import java.util.List;
  * @description
  * @date 2023/3/9 20:12
  */
-@ApiModel(value = "ActTaskProcdefReqDto", description = "任务模板Dto")
 @Data
 public class ActTaskProcdefRespDto {
 
@@ -29,32 +27,27 @@ public class ActTaskProcdefRespDto {
     /**
      *流程模板名称
      */
-    @ApiModelProperty(name = "processfName", value = "流程模板名称")
     private String processfName;
 
     /**
      * 任务名称
      */
-    @ApiModelProperty(name = "taskName", value = "任务名称")
     private String taskName;
 
 
     /**
      * 任务编号
      */
-    @ApiModelProperty(name = "taskNo", value = "任务编号")
     private String taskNo;
 
     /**
      * 任务排序
      */
-    @ApiModelProperty(name = "sort", value = "任务排序")
     private Integer sort;
 
     /**
      * 任务备注
      */
-    @ApiModelProperty(name = "remark", value = "任务备注")
     private String remark;
 
 
@@ -62,31 +55,26 @@ public class ActTaskProcdefRespDto {
      * 退回节点，可以多节点
      */
 
-    @ApiModelProperty(name = "backTasks", value = "退回节点")
     private List<String> backTasks;
 
 
-    @ApiModelProperty(name = "backTaskDtos", value = "退回节点list")
     private List<ActTaskProcdefRespDto> backTaskDtos;
 
     /**
      * 流程模板id
      */
-    @ApiModelProperty(name = "processFid", value = "流程模板id")
     private String processFid;
 
 
     /**
      * 上一级任务节点
      */
-    @ApiModelProperty(name = "preTaskIds", value = "上一级任务节点")
     private List<String> preTaskIds;
 
 
     /**
      * 下一级任务节点
      */
-    @ApiModelProperty(name = "nextTaskIds", value = "下一级任务节点")
     private List<String> nextTaskIds;
 
     /**
@@ -94,14 +82,12 @@ public class ActTaskProcdefRespDto {
      * tag_ids
      * @return
      */
-    @ApiModelProperty(name = "tagIds", value = "关联标签ids")
     private List<String> tagIds;
 
     /**
      *执行中断tag
      */
 
-    @ApiModelProperty(name = "interruptTag", value = "执行中断tag")
     private List<String> interruptTag;
 
 
