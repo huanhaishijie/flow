@@ -383,6 +383,35 @@ public class DocumentFlowListener {
 
 
 
+### 其它事项
+
+1. 生产环境移除swagger依赖可以使用以下配置
+```
+
+<dependency>
+            <groupId>com.sophony.flow</groupId>
+            <artifactId>flow-yzm-starter</artifactId>
+            <version>3.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.xiaoymin</groupId>
+                    <artifactId>knife4j-spring-boot-starter</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger-ui</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+```
+
+
+
 
 
 
