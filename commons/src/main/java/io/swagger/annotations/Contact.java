@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,20 +22,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents an external documentation description.
+ * Contact metadata available within the info section of a Swagger definition - see
+ * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#contactObject
  *
  * @since 1.5.0
  */
-@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExternalDocs {
-    /**
-     * A short description of the target documentation. GFM syntax can be used for rich text representation.
-     */
-    String value() default "";
+public @interface Contact {
 
     /**
-     * URL for the docs.
+     * The name of the contact.
+     *
+     * @return the name of the contact
      */
-    String url();
+    String name();
+
+    /**
+     * Optional URL associated with this contact.
+     *
+     * @return an optional URL associated with this contact
+     */
+    String url() default "";
+
+    /**
+     * Optional email for this contact.
+     *
+     * @return an optional email for this contact
+     */
+    String email() default "";
 }

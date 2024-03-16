@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,39 +22,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A definition level Tag object see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#tag-object
+ * An optionally named list of extension properties.
  *
  * @since 1.5.0
  */
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Tag {
+public @interface Extension {
 
     /**
-     * The name of this tag.
+     * An option name for these extensions.
      *
-     * @return the name of this tag
+     * @return an option name for these extensions - will be prefixed with "x-"
      */
-    String name();
+    String name() default "";
 
     /**
-     * Optional description of the tag.
+     * The extension properties.
      *
-     * @return an optional description of what this tag means
+     * @return the actual extension properties
+     * @see ExtensionProperty
      */
-    String description() default "";
-
-    /**
-     * Optional reference to external documentation for this tag.
-     *
-     * @return an optional reference to external documentation for this tag
-     */
-    ExternalDocs externalDocs() default @ExternalDocs(url = "");
-
-    /**
-     * A list of extensions associated with this tag.
-     *
-     * @return a list of extensions associated with this tag
-     */
-    Extension[] extensions() default @Extension(properties = @ExtensionProperty(name = "", value = ""));
+    ExtensionProperty[] properties();
 }

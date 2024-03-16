@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,26 +22,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An optionally named list of extension properties.
+ * A name/value property within a Swagger extension
  *
+ * @see Extension
  * @since 1.5.0
  */
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Extension {
+public @interface ExtensionProperty {
 
     /**
-     * An option name for these extensions.
+     * The name of the property.
      *
-     * @return an option name for these extensions - will be prefixed with "x-"
+     * @return the name of the property
      */
-    String name() default "";
+    String name();
 
     /**
-     * The extension properties.
+     * The value of the property.
      *
-     * @return the actual extension properties
-     * @see ExtensionProperty
+     * @return the value of the property
      */
-    ExtensionProperty[] properties();
+    String value();
 }

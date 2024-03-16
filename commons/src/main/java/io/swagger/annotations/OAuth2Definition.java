@@ -1,4 +1,4 @@
-package io.annotations;
+package io.swagger.annotations;
 
 /**
  * Annotation used to construct OAuth security definition.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,30 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Describes an OAuth2 authorization scope.
- * <p>
- * Used to define an authorization scope that is used by an operation for
- * a defined authorization scheme.
- * <p>
- * This annotation is not used directly and will not be parsed by Swagger. It should be used
- * within the {@link Authorization}.
+ * A wrapper to allow a list of multiple {@link ApiImplicitParam} objects.
  *
- * @see Authorization
- * @see ApiOperation
- * @see Api
+ * @see ApiImplicitParam
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AuthorizationScope {
+public @interface ApiImplicitParams {
     /**
-     * The scope of the OAuth2 Authorization scheme to be used.
-     * <p>
-     * The scope should be previously declared in the Swagger Object's securityDefinition section.
+     * A list of {@link ApiImplicitParam}s available to the API operation.
      */
-    String scope();
-
-    /**
-     * Not used in 1.5.X, kept for legacy support.
-     */
-    String description();
+    ApiImplicitParam[] value();
 }
