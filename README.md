@@ -406,7 +406,7 @@ public class DocumentFlowListener {
                     <artifactId>springfox-swagger-ui</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+</dependency>
         
 ```
 
