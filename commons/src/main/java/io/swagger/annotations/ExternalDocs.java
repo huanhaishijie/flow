@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,26 +22,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A name/value property within a Swagger extension
+ * Represents an external documentation description.
  *
- * @see Extension
  * @since 1.5.0
  */
-@Target(ElementType.ANNOTATION_TYPE)
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExtensionProperty {
+public @interface ExternalDocs {
+    /**
+     * A short description of the target documentation. GFM syntax can be used for rich text representation.
+     */
+    String value() default "";
 
     /**
-     * The name of the property.
-     *
-     * @return the name of the property
+     * URL for the docs.
      */
-    String name();
-
-    /**
-     * The value of the property.
-     *
-     * @return the value of the property
-     */
-    String value();
+    String url();
 }

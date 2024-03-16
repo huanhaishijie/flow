@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,15 +22,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A wrapper to allow a list of multiple {@link ApiImplicitParam} objects.
+ * An optionally named list of example properties.
  *
- * @see ApiImplicitParam
+ * @since 1.5.4
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE, ElementType.TYPE})
+@Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ApiImplicitParams {
+public @interface Example {
     /**
-     * A list of {@link ApiImplicitParam}s available to the API operation.
+     * The examples properties.
+     *
+     * @return the actual extension properties
+     * @see ExampleProperty
      */
-    ApiImplicitParam[] value();
+    ExampleProperty[] value();
 }

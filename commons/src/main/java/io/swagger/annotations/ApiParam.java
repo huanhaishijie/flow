@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,31 +22,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents a single parameter in an API Operation.
+ * Adds additional meta-data for operation parameters.
  * <p>
- * While {@link ApiParam} is bound to a JAX-RS parameter,
- * method or field, this allows you to manually define a parameter in a fine-tuned manner.
- * This is the only way to define parameters when using Servlets or other non-JAX-RS
- * environments.
- * <p>
- * This annotation must be used as a value of {@link ApiImplicitParams}
- * in order to be parsed.
- *
- * @see ApiImplicitParams
+ * This annotation can be used only in combination of JAX-RS 1.x/2.x annotations.
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ApiImplicitParam {
+public @interface ApiParam {
     /**
-     * Name of the parameter.
+     * The parameter name.
      * <p>
-     * For proper Swagger functionality, follow these rules when naming your parameters based on {@link #paramType()}:
-     * <ol>
-     * <li>If {@code paramType} is "path", the name should be the associated section in the path.</li>
-     * <li>For all other cases, the name should be the parameter name as your application expects to accept.</li>
-     * </ol>
-     *
-     * @see #paramType()
+     * The name of the parameter will be derived from the field/method/parameter name,
+     * however you can override it.
+     * <p>
+     * Path parameters must always be named as the path section they represent.
      */
     String name() default "";
 
@@ -57,6 +46,9 @@ public @interface ApiImplicitParam {
 
     /**
      * Describes the default value for the parameter.
+     * <p>
+     * If the parameter is annotated with JAX-RS's {@code @DefaultValue}, that value would
+     * be used, but can be overridden by setting this property.
      */
     String defaultValue() default "";
 
@@ -80,7 +72,7 @@ public @interface ApiImplicitParam {
     /**
      * Specifies if the parameter is required or not.
      * <p>
-     * Path parameters should always be set as required.
+     * Path parameters will always be set as required, whether you set this property or not.
      */
     boolean required() default false;
 
@@ -97,26 +89,9 @@ public @interface ApiImplicitParam {
     boolean allowMultiple() default false;
 
     /**
-     * The data type of the parameter.
-     * <p>
-     * This can be the class name or a primitive.
+     * Hides the parameter from the list of parameters.
      */
-    String dataType() default "";
-
-    /**
-     * The class of the parameter.
-     * <p>
-     * Overrides {@code dataType} if provided.
-     */
-    Class<?> dataTypeClass() default Void.class;
-
-    /**
-     * The parameter type of the parameter.
-     * <p>
-     * Valid values are {@code path}, {@code query}, {@code body},
-     * {@code header} or {@code form}.
-     */
-    String paramType() default "";
+    boolean hidden() default false;
 
     /**
      * a single example for non-body type parameters

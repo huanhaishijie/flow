@@ -1,4 +1,4 @@
-package io.annotations;
+package io.swagger.annotations;
 
 /**
  * The available scopes for an OAuth2 security scheme

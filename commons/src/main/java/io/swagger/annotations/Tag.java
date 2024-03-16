@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,33 +22,39 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Contact metadata available within the info section of a Swagger definition - see
- * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#contactObject
+ * A definition level Tag object see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#tag-object
  *
  * @since 1.5.0
  */
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Contact {
+public @interface Tag {
 
     /**
-     * The name of the contact.
+     * The name of this tag.
      *
-     * @return the name of the contact
+     * @return the name of this tag
      */
     String name();
 
     /**
-     * Optional URL associated with this contact.
+     * Optional description of the tag.
      *
-     * @return an optional URL associated with this contact
+     * @return an optional description of what this tag means
      */
-    String url() default "";
+    String description() default "";
 
     /**
-     * Optional email for this contact.
+     * Optional reference to external documentation for this tag.
      *
-     * @return an optional email for this contact
+     * @return an optional reference to external documentation for this tag
      */
-    String email() default "";
+    ExternalDocs externalDocs() default @ExternalDocs(url = "");
+
+    /**
+     * A list of extensions associated with this tag.
+     *
+     * @return a list of extensions associated with this tag
+     */
+    Extension[] extensions() default @Extension(properties = @ExtensionProperty(name = "", value = ""));
 }

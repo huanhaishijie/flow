@@ -1,4 +1,4 @@
-package io.annotations;
+package io.swagger.annotations;
 
 import java.util.HashMap;
 import java.util.Map;

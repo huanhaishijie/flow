@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.annotations;
+package io.swagger.annotations;
 
 import java.lang.annotation.*;
 
