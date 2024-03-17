@@ -85,7 +85,11 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         actProcess.setStartTime(LocalDateTime.now());
         actProcess.setState(ProcessStateEnum.START.getName());
         if(Objects.nonNull(process)){
-            actProcess.setClassName(process.getClass().getName());
+            String name = process.getClass().getName();
+            if(name.contains("$$")){
+                name = name.substring(0, name.indexOf("$"));
+            }
+            actProcess.setClassName(name);
         }
         //查询路程开始节点
         ActTaskProcdef actTaskProcdef = new ActTaskProcdef();
@@ -840,7 +844,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
 
             try {
                 Class<?> aClass = Class.forName(hookName);
-                Method auditBefore = aClass.getMethod("auditBefore");
+                Method auditBefore = aClass.getMethod("auditBefore", IProcess.class);
                 if(Objects.isNull(auditBefore)){
                     return true;
                 }
