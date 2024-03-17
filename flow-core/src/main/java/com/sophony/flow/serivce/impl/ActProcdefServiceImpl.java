@@ -90,7 +90,7 @@ public class ActProcdefServiceImpl extends BaseService implements IActProcdefSer
         ActProcdef actProcdef = super.getById(id, ActProcdef.class);
         String actNo = actProcdef.getActNo();
         ActProcdef temp = super.selectOne(actProcdef.getQuerySql() + " where is_deleted = 0 and act_no = ? and state = '1' limit 1", actProcdef.getClass(), new Object[]{actProcdef.getActNo()});
-        if(Objects.nonNull(temp)){
+        if(Objects.nonNull(temp) && !temp.getId().equals(id)){
             return ResultDTO.failed(actNo+": 一个编号只能激活一个, 要想激活当前流程，请先冻结其它相同编号流程");
         }
         if(Objects.nonNull(actProcdef)){
