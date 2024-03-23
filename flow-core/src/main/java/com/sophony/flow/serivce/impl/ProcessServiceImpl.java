@@ -253,7 +253,7 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         if(!b){
 
             if(BusParam.getInstance().getMap() == null){
-                ResultDTO.failed("业务条件校验不通过，审核终止");
+                return ResultDTO.failed("业务条件校验不通过，审核终止");
             }
 
             ResultDTO resultDTO = BusParam.getInstance().getMap().containsKey(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG) ?
