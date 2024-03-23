@@ -251,6 +251,11 @@ public class ProcessServiceImpl extends BaseService implements IProcessService {
         }
         boolean b = beforeNotify(processId, actProcess.getClassName(), approveReqDto.getOperation());
         if(!b){
+
+            if(BusParam.getInstance().getMap() == null){
+                ResultDTO.failed("业务条件校验不通过，审核终止");
+            }
+
             ResultDTO resultDTO = BusParam.getInstance().getMap().containsKey(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG) ?
                     ResultDTO.failed(String.valueOf(BusParam.getInstance().getMap().get(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG))) : ResultDTO.failed("业务条件校验不通过，审核终止");
             BusParam.getInstance().getMap().remove(ParamKey.CONTENTKEY_BEFORE_ERROR_MSG);
